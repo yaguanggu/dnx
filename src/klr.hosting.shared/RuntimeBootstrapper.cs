@@ -77,8 +77,12 @@ namespace klr.hosting
             // TODO: Make this pluggable and not limited to the console logger
             if (enableTrace)
             {
+                var traceSw = new StringWriter();
+                AppDomain.CurrentDomain.SetData("KRE_TRACE", traceSw);
+                AppDomain.CurrentDomain.SetData("KRE_TIMER", Stopwatch.StartNew());
                 var listener = new ConsoleTraceListener();
                 Trace.Listeners.Add(listener);
+                Trace.Listeners.Add(new TextWriterTraceListener(traceSw));
                 Trace.AutoFlush = true;
             }
 #endif

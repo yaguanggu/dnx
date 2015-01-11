@@ -27,12 +27,15 @@ int CallFirmwareProcessMain(int argc, wchar_t* argv[])
     FnCallApplicationMain pfnCallApplicationMain = nullptr;
     int exitCode = 0;
 
-    TCHAR szCurrentDirectory[MAX_PATH];
-    GetModuleDirectory(NULL, szCurrentDirectory);
+    TCHAR szModuleDirectory[MAX_PATH];
+    GetModuleDirectory(NULL, szModuleDirectory);
+
+	TCHAR szCurrentDirectory[MAX_PATH];
+	GetCurrentDirectory(NULL, szCurrentDirectory);
 
     // Set the DEFAULT_LIB environment variable to be the same directory
     // as the exe
-    SetEnvironmentVariable(L"KRE_DEFAULT_LIB", szCurrentDirectory);
+    SetEnvironmentVariable(L"KRE_DEFAULT_LIB", szModuleDirectory);
 
     // Set the KRE_CONOSLE_HOST flag which will print exceptions
     // to stderr instead of throwing
@@ -42,34 +45,16 @@ int CallFirmwareProcessMain(int argc, wchar_t* argv[])
     data.argc = argc - 1;
     data.argv = const_cast<LPCWSTR*>(&argv[1]);
 
-    // Get application base from KRE_APPBASE environment variable
-    // Note: this value can be overriden by --appbase option
-    TCHAR szAppBase[MAX_PATH];
-    DWORD dwAppBase = GetEnvironmentVariableW(L"KRE_APPBASE", szAppBase, MAX_PATH);
-    if (dwAppBase != 0)
-    {
-        data.applicationBase = szAppBase;
-    }
+#if CORECLR
+	data.applicationBase = szCurrentDirectory;
+#else
+	data.applicationBase = szModuleDirectory;
+#endif
 
     auto stringsEqual = [](const wchar_t*  const a, const wchar_t*  const b) -> bool
     {
         return ::_wcsicmp(a, b) == 0;
     };
-
-    bool processing = true;
-    while (processing)
-    {
-        if (data.argc >= 2 && stringsEqual(data.argv[0], L"--appbase"))
-        {
-            data.applicationBase = data.argv[1];
-            data.argc -= 2;
-            data.argv += 2;
-        }
-        else
-        {
-            processing = false;
-        }
-    }
 
     m_hHostModule = ::LoadLibraryExW(pwzHostModuleName, NULL, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
     if (!m_hHostModule)

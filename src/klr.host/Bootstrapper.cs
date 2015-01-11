@@ -3,6 +3,7 @@
 
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -18,7 +19,7 @@ namespace klr.host
     public class Bootstrapper
     {
         private readonly IAssemblyLoaderContainer _container;
-        
+
         public Bootstrapper(IAssemblyLoaderContainer container)
         {
             _container = container;
@@ -43,19 +44,13 @@ namespace klr.host
             }
 
 #if ASPNET50
-            string applicationBaseDirectory;
-            if (PlatformHelper.IsMono)
+            var applicationBaseDirectory = Environment.GetEnvironmentVariable("KRE_APPBASE");
+            if (string.IsNullOrEmpty(applicationBaseDirectory))
             {
-                applicationBaseDirectory = Environment.GetEnvironmentVariable("KRE_APPBASE");
-                if (string.IsNullOrEmpty(applicationBaseDirectory))
-                {
-                    applicationBaseDirectory = Directory.GetCurrentDirectory();
-                }
+                applicationBaseDirectory = Directory.GetCurrentDirectory();
             }
-            else
-            {
-                applicationBaseDirectory = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
-            }
+
+            Trace.TraceInformation("[{0}]: Using {1}", nameof(Bootstrapper), Environment.GetEnvironmentVariable("KRE_DEFAULT_LIB"));
 #else
             string applicationBaseDirectory = AppContext.BaseDirectory;
 #endif
@@ -63,7 +58,6 @@ namespace klr.host
             var framework = Environment.GetEnvironmentVariable("TARGET_FRAMEWORK") ?? Environment.GetEnvironmentVariable("KRE_FRAMEWORK");
             var configuration = Environment.GetEnvironmentVariable("TARGET_CONFIGURATION") ?? Environment.GetEnvironmentVariable("KRE_CONFIGURATION") ?? "Debug";
 
-            // TODO: Support the highest installed version
             var targetFramework = FrameworkNameUtility.ParseFrameworkName(framework ?? "aspnet50");
 
             var applicationEnvironment = new ApplicationEnvironment(applicationBaseDirectory,
