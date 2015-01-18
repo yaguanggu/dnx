@@ -981,6 +981,9 @@ namespace Microsoft.Framework.DesignTimeHost
                 Version = library.Identity.Version?.ToString(),
                 Type = library.Resolved ? library.Type : "Unresolved",
                 Path = library.Path,
+                FileName = library.LibraryRange.FileName,
+                Line = library.LibraryRange.Line,
+                Column = library.LibraryRange.Column,
                 Dependencies = library.Dependencies.Select(dependency => new DependencyItem
                 {
                     Name = dependency.Name,

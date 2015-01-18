@@ -487,14 +487,14 @@ namespace Microsoft.Framework.Runtime
             var dependencies = settings[propertyName] as JObject;
             if (dependencies != null)
             {
-                foreach (var dependency in dependencies)
+                foreach (var dependency in dependencies.Properties())
                 {
-                    if (string.IsNullOrEmpty(dependency.Key))
+                    if (string.IsNullOrEmpty(dependency.Name))
                     {
 
                         throw FileFormatException.Create(
                             "Unable to resolve dependency ''.",
-                            dependency.Value,
+                            dependency,
                             projectPath);
                     }
 
@@ -548,13 +548,18 @@ namespace Microsoft.Framework.Runtime
                         }
                     }
 
+                    var dependencyLineInfo = (IJsonLineInfo)dependency;
+
                     results.Add(new LibraryDependency
                     {
                         LibraryRange = new LibraryRange
                         {
-                            Name = dependency.Key,
+                            Name = dependency.Name,
                             VersionRange = dependencyVersionRange,
                             IsGacOrFrameworkReference = isGacOrFrameworkReference,
+                            FileName = projectPath,
+                            Line = dependencyLineInfo.LineNumber,
+                            Column = dependencyLineInfo.LinePosition
                         },
                         Type = dependencyTypeValue
                     });

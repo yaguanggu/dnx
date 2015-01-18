@@ -16,6 +16,12 @@ namespace Microsoft.Framework.DesignTimeHost.Models.OutgoingMessages
 
         public string Type { get; set; }
 
+        public string FileName { get; set; }
+
+        public int Line { get; set; }
+
+        public int Column { get; set; }
+
         public IEnumerable<DependencyItem> Dependencies { get; set; }
 
         public override bool Equals(object obj)
