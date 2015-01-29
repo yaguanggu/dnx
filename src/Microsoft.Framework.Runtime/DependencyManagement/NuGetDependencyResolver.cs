@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
@@ -47,6 +48,7 @@ namespace Microsoft.Framework.Runtime
 
         public void ApplyLockFile(LockFile lockFile)
         {
+            Logger.TraceInformation("[{0}]: Applying lock file", nameof(NuGetDependencyResolver));
             _repository.ApplyLockFile(lockFile);
         }
 

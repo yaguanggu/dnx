@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet;
@@ -41,12 +42,14 @@ namespace Microsoft.Framework.Runtime
 
             globalSettings = new GlobalSettings();
 
-            string json = File.ReadAllText(globalJsonPath);
             JObject settings = null;
 
             try
             {
-                settings = JObject.Parse(json);
+                using (var stream = File.OpenRead(globalJsonPath))
+                {
+                    settings = JObject.Load(new JsonTextReader(new StreamReader(stream)));
+                }
             }
             catch (JsonReaderException ex)
             {
@@ -57,7 +60,7 @@ namespace Microsoft.Framework.Runtime
             var projectSearchPaths = settings["projects"] ?? settings["sources"];
             var dependencies = settings["dependencies"] as JObject;
 
-            globalSettings.ProjectSearchPaths = projectSearchPaths == null ? new string[] { } : projectSearchPaths.ToObject<string[]>();
+            globalSettings.ProjectSearchPaths = projectSearchPaths == null ? new string[] { } : (projectSearchPaths as JArray).Select(t => t.Value<string>()).ToArray();
             globalSettings.PackagesPath = settings.Value<string>("packages");
             globalSettings.PackageHashes = new Dictionary<Library, string>();
             globalSettings.FilePath = globalJsonPath;
