@@ -6,12 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
+using System.Diagnostics;
 
 namespace Microsoft.Framework.Runtime.DependencyManagement
 {
     public class LockFilePackage : LocalPackage
     {
         private string _nuspecPath;
+        private string _packageDirectory;
         private LockFileLibrary _lockFileLibrary;
         private IFileSystem _repositoryRoot;
 
@@ -19,6 +22,7 @@ namespace Microsoft.Framework.Runtime.DependencyManagement
         {
             _repositoryRoot = repositoryRoot;
             _nuspecPath = nuspecPath;
+            _packageDirectory = repositoryRoot.GetFullPath(Path.GetDirectoryName(nuspecPath));
             _lockFileLibrary = lockFileLibrary;
             RecreateManifest();
         }
@@ -60,21 +64,77 @@ namespace Microsoft.Framework.Runtime.DependencyManagement
 
         protected override IEnumerable<IPackageAssemblyReference> GetAssemblyReferencesCore()
         {
-            return from file in GetFilesBase()
-                   where IsAssemblyReference(file.Path)
+            return from LockFilePackageFile file in GetFilesBase()
+                   where file.IsAssemblyReference
                    select CreatePackageAssemblyReference(file);
         }
 
-        private IPackageAssemblyReference CreatePackageAssemblyReference(IPackageFile file)
+        private IPackageAssemblyReference CreatePackageAssemblyReference(LockFilePackageFile file)
         {
-            var physicalfile = new PhysicalPackageFile();
-            physicalfile.TargetPath = file.Path;
-            return new PhysicalPackageAssemblyReference(physicalfile);
+            var assemblyFile = new LockFileAssemblyReference(file);
+            assemblyFile.PhysicalPath = Path.Combine(_packageDirectory, file.Path);
+            return assemblyFile;
         }
 
         protected override IEnumerable<IPackageFile> GetFilesBase()
         {
             return _lockFileLibrary.Files;
+        }
+
+        private class LockFileAssemblyReference : IPackageAssemblyReference
+        {
+            private readonly LockFilePackageFile _file;
+            public LockFileAssemblyReference(LockFilePackageFile file)
+            {
+                _file = file;
+            }
+
+            public string EffectivePath
+            {
+                get
+                {
+                    return _file.EffectivePath;
+                }
+            }
+
+            public string Name
+            {
+                get
+                {
+                    return System.IO.Path.GetFileName(_file.Path);
+                }
+            }
+
+            public string Path
+            {
+                get
+                {
+                    return _file.Path;
+                }
+            }
+
+            public string PhysicalPath { get; set; }
+
+            public IEnumerable<FrameworkName> SupportedFrameworks
+            {
+                get
+                {
+                    return _file.SupportedFrameworks;
+                }
+            }
+
+            public FrameworkName TargetFramework
+            {
+                get
+                {
+                    return _file.TargetFramework;
+                }
+            }
+
+            public Stream GetStream()
+            {
+                return _file.GetStream();
+            }
         }
     }
 }

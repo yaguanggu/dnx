@@ -17,7 +17,7 @@ namespace Microsoft.Framework.Runtime
 
         static LibraryDependencyType()
         {
-            Default = Parse(new[] { "default" });
+            Default = new LibraryDependencyType(LibraryDependencyTypeKeyword.Default.FlagsToAdd as LibraryDependencyTypeFlag[]);
         }
 
         public LibraryDependencyType()

@@ -14,6 +14,8 @@ namespace Microsoft.Framework.Runtime.Servicing
         string _folderPath;
         Dictionary<EntryKey, Entry> _entries = new Dictionary<EntryKey, Entry>();
 
+        public bool Exists { get; set; }
+
         public void Initialize(string folderPath)
         {
             _folderPath = folderPath;
@@ -21,6 +23,7 @@ namespace Microsoft.Framework.Runtime.Servicing
             if (!File.Exists(indexFilePath))
             {
                 Logger.TraceInformation("[{0}]: Servicing index not found at {1}", GetType().Name, indexFilePath);
+                Exists = false;
                 return;
             }
             else
@@ -84,6 +87,12 @@ namespace Microsoft.Framework.Runtime.Servicing
 
         public bool TryGetReplacement(string packageId, SemanticVersion packageVersion, string assetPath, out string replacementPath)
         {
+            if (!Exists)
+            {
+                replacementPath = null;
+                return false;
+            }
+
             Entry entry;
             if (_entries.TryGetValue(new EntryKey(packageId, packageVersion), out entry))
             {

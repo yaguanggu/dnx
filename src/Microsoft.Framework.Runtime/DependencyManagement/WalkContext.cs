@@ -314,15 +314,34 @@ namespace Microsoft.Framework.Runtime
         public void Populate(FrameworkName frameworkName, IList<LibraryDescription> libraries)
         {
             var sw = Stopwatch.StartNew();
-
+            
             foreach (var groupByResolver in _usedItems.GroupBy(x => x.Value.Resolver))
             {
                 var resolver = groupByResolver.Key;
-                var packageKeys = groupByResolver.Select(x => x.Value.Key).OrderBy(x => x.Name).ToList();
 
-                Logger.TraceInformation("[{0}]: " + string.Join(", ", packageKeys), resolver.GetType().Name);
+                // var packageKeys = groupByResolver.Select(x => x.Value.Key).OrderBy(x => x.Name).ToList();
+                // Logger.TraceInformation("[{0}]: " + string.Join(", ", packageKeys), resolver.GetType().Name);
 
-                var descriptions = groupByResolver.Select(entry =>
+                var descriptions = new List<LibraryDescription>();
+
+                foreach (var entry in groupByResolver)
+                {
+                    var other = new LibraryDescription
+                    {
+                        LibraryRange = entry.Value.Description.LibraryRange,
+                        Identity = entry.Value.Key,
+                        Path = entry.Value.Description.Path,
+                        Type = entry.Value.Description.Type,
+                        Framework = entry.Value.Description.Framework ?? frameworkName,
+                        Dependencies = entry.Value.Dependencies.SelectMany(CorrectDependencyVersion).ToList(),
+                        LoadableAssemblies = entry.Value.Description.LoadableAssemblies ?? Enumerable.Empty<string>(),
+                        Resolved = entry.Value.Description.Resolved
+                    };
+
+                    descriptions.Add(other);
+                }
+
+                /*var descriptions = groupByResolver.Select(entry =>
                 {
                     return new LibraryDescription
                     {
@@ -335,7 +354,7 @@ namespace Microsoft.Framework.Runtime
                         LoadableAssemblies = entry.Value.Description.LoadableAssemblies ?? Enumerable.Empty<string>(),
                         Resolved = entry.Value.Description.Resolved
                     };
-                }).ToList();
+                }).ToList();*/
 
                 resolver.Initialize(descriptions, frameworkName);
                 libraries.AddRange(descriptions);

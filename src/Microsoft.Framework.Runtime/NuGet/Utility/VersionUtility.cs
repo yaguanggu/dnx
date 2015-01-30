@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.Framework.Runtime;
 using NuGet.Resources;
 using CompatibilityMapping = System.Collections.Generic.Dictionary<string, string[]>;
@@ -154,12 +153,21 @@ namespace NuGet
             }
 
             // If we find a version then we try to split the framework name into 2 parts
-            var versionMatch = Regex.Match(frameworkNameAndVersion, @"\d+");
-
-            if (versionMatch.Success)
+            int versionIndex = -1;
+            for (int i = 0; i < frameworkNameAndVersion.Length; i++)
             {
-                identifierPart = frameworkNameAndVersion.Substring(0, versionMatch.Index).Trim();
-                versionPart = frameworkNameAndVersion.Substring(versionMatch.Index).Trim();
+                var ch = frameworkNameAndVersion[i];
+                if (Char.IsDigit(ch))
+                {
+                    versionIndex = i;
+                    break;
+                }
+            }
+            
+            if (versionIndex >= 0)
+            {
+                identifierPart = frameworkNameAndVersion.Substring(0, versionIndex).Trim();
+                versionPart = frameworkNameAndVersion.Substring(versionIndex).Trim();
             }
             else
             {

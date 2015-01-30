@@ -69,7 +69,7 @@ namespace NuGet
         {
             var profileCollection = new NetPortableProfileCollection();
 
-            var referenceAssembliesPath = FrameworkReferenceResolver.GetReferenceAssembliesPath();
+            /*var referenceAssembliesPath = FrameworkReferenceResolver.GetReferenceAssembliesPath();
 
             if (!string.IsNullOrEmpty(referenceAssembliesPath))
             {
@@ -83,7 +83,7 @@ namespace NuGet
                         profileCollection.AddRange(LoadProfilesFromFramework(versionDir, profileFilesPath));
                     }
                 }
-            }
+            }*/
 
             return profileCollection;
         }

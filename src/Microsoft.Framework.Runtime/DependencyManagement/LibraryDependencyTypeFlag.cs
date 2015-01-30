@@ -14,28 +14,17 @@ namespace Microsoft.Framework.Runtime
         private static ConcurrentDictionary<string, LibraryDependencyTypeFlag> _flags = new ConcurrentDictionary<string, LibraryDependencyTypeFlag>();
         private readonly string _value;
 
-        public static LibraryDependencyTypeFlag MainReference;
-        public static LibraryDependencyTypeFlag MainSource;
-        public static LibraryDependencyTypeFlag MainExport;
-        public static LibraryDependencyTypeFlag PreprocessReference;
+        public static LibraryDependencyTypeFlag MainReference = Declare("MainReference");
+        public static LibraryDependencyTypeFlag MainSource = Declare("MainSource");
+        public static LibraryDependencyTypeFlag MainExport = Declare("MainExport");
+        public static LibraryDependencyTypeFlag PreprocessReference = Declare("PreprocessReference");
 
-        public static LibraryDependencyTypeFlag RuntimeComponent;
-        public static LibraryDependencyTypeFlag DevComponent;
-        public static LibraryDependencyTypeFlag PreprocessComponent;
-        public static LibraryDependencyTypeFlag BecomesNupkgDependency;
-
-        static LibraryDependencyTypeFlag()
-        {
-            foreach (var fieldInfo in typeof(LibraryDependencyTypeFlag).GetTypeInfo().DeclaredFields)
-            {
-                if (fieldInfo.FieldType == typeof(LibraryDependencyTypeFlag))
-                {
-                    fieldInfo.SetValue(null, Declare(fieldInfo.Name));
-                }
-            }
-        }
-
-        LibraryDependencyTypeFlag(string value)
+        public static LibraryDependencyTypeFlag RuntimeComponent = Declare("RuntimeComponent");
+        public static LibraryDependencyTypeFlag DevComponent = Declare("DevComponent");
+        public static LibraryDependencyTypeFlag PreprocessComponent = Declare("PreprocessComponent");
+        public static LibraryDependencyTypeFlag BecomesNupkgDependency = Declare("BecomesNupkgDependency");
+        
+        private LibraryDependencyTypeFlag(string value)
         {
             _value = value;
         }

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using NuGet;
 using System.Runtime.Versioning;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Microsoft.Framework.Runtime.DependencyManagement
 {
@@ -231,13 +232,37 @@ namespace Microsoft.Framework.Runtime.DependencyManagement
         {
             var file = new LockFilePackageFile();
             file.Path = property;
+
+            var frameworks = json["supportedFrameworks"] as JArray;
+            if (frameworks != null)
+            {
+                file.SupportedFrameworks = frameworks.Select(t => new FrameworkName(t.Value<string>())).ToList();
+                file.TargetFramework = file.SupportedFrameworks.FirstOrDefault();
+            }
+
+            var assemblyReference = json["assembly"];
+            if (assemblyReference != null)
+            {
+                file.IsAssemblyReference = assemblyReference.Value<bool>();
+            }
+
             return file;
         }
 
         private JProperty WritePackageFile(IPackageFile item)
         {
             var json = new JObject();
-            return new JProperty(item.Path, new JObject());
+            if (item.SupportedFrameworks.Any())
+            {
+                json["supportedFrameworks"] = WriteArray(item.SupportedFrameworks, WriteFrameworkName);
+            }
+
+            if (LocalPackage.IsAssemblyReference(item.Path))
+            {
+                json["assembly"] = true;
+            }
+
+            return new JProperty(item.Path, json);
         }
 
         private IList<TItem> ReadArray<TItem>(JArray json, Func<JToken, TItem> readItem)
@@ -346,40 +371,6 @@ namespace Microsoft.Framework.Runtime.DependencyManagement
         private JToken WriteFrameworkName(FrameworkName item)
         {
             return item != null ? new JValue(item.ToString()) : JValue.CreateNull();
-        }
-
-        class LockFilePackageFile : IPackageFile
-        {
-            public string EffectivePath
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public string Path { get; set; }
-
-            public IEnumerable<FrameworkName> SupportedFrameworks
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public FrameworkName TargetFramework
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public Stream GetStream()
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }

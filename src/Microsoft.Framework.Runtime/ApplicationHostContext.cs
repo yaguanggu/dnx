@@ -15,6 +15,7 @@ namespace Microsoft.Framework.Runtime
     public class ApplicationHostContext
     {
         private readonly ServiceProvider _serviceProvider;
+        private Project _project;
 
         public ApplicationHostContext(IServiceProvider serviceProvider,
                                       string projectDirectory,
@@ -116,12 +117,12 @@ namespace Microsoft.Framework.Runtime
         {
             get
             {
-                Project project;
-                if (Project.TryGetProject(ProjectDirectory, out project))
+                if (_project == null)
                 {
-                    return project;
+                    Project.TryGetProject(ProjectDirectory, out _project);
                 }
-                return null;
+
+                return _project;
             }
         }
 
