@@ -28,6 +28,7 @@ namespace dotnet.hosting
         private static readonly ConcurrentDictionary<string, Assembly> _assemblyNeutralInterfaces =
             new ConcurrentDictionary<string, Assembly>(StringComparer.Ordinal);
 
+        private static readonly char _libPathSeparatorChar = ';';
         private static readonly char[] _libPathSeparator = new[] { ';' };
 
         public static int Execute(string[] args)
@@ -315,7 +316,7 @@ namespace dotnet.hosting
             }
         }
 
-        private static string[] ResolveSearchPaths(IEnumerable<string> libPaths, List<string> remainingArgs)
+        private static string[] ResolveSearchPaths(List<string> libPaths, List<string> remainingArgs)
         {
             var searchPaths = new List<string>();
 
@@ -324,16 +325,28 @@ namespace dotnet.hosting
 
             if (!string.IsNullOrEmpty(defaultLibPath))
             {
-                // Add the default lib folder if specified
-                searchPaths.AddRange(ExpandSearchPath(defaultLibPath));
+                libPaths.Add(defaultLibPath);
             }
 
             // Add the expanded search libs to the list of paths
-            searchPaths.AddRange(libPaths.SelectMany(ExpandSearchPath));
+            foreach (var libPath in libPaths)
+            {
+                string[] expandedPaths;
+                if (TryExpandSearchPath(libPath, out expandedPaths))
+                {
+                    searchPaths.AddRange(expandedPaths);
+                }
+                else
+                {
+                    searchPaths.Add(Path.GetFullPath(libPath));
+                }
+            }
+
+            // searchPaths.AddRange(libPaths.SelectMany(ExpandSearchPath));
 
             // If a .dll or .exe is specified then turn this into
             // --lib {path to dll/exe} [dll/exe name]
-            if (remainingArgs.Any())
+            if (remainingArgs.Count > 0)
             {
                 var application = remainingArgs[0];
                 var extension = Path.GetExtension(application);
@@ -353,18 +366,30 @@ namespace dotnet.hosting
             return searchPaths.ToArray();
         }
 
-        private static IEnumerable<string> ExpandSearchPath(string libPath)
+        private static bool TryExpandSearchPath(string libPath, out string[] searchPaths)
         {
-            // Expand ; separated arguments
-            return libPath.Split(_libPathSeparator, StringSplitOptions.RemoveEmptyEntries)
-                          .Select(Path.GetFullPath);
+            if (libPath.IndexOf(_libPathSeparatorChar) == -1)
+            {
+                searchPaths = null;
+                return false;
+            }
+
+            var paths = libPath.Split(_libPathSeparator);
+            for (int i = 0; i < paths.Length; i++)
+            {
+                paths[i] = Path.GetFullPath(paths[i]);
+            }
+
+            searchPaths = paths;
+
+            return true;
         }
 
         private static void ExtractAssemblyNeutralInterfaces(Assembly assembly, Func<Stream, Assembly> load)
         {
             foreach (var resourceName in assembly.GetManifestResourceNames())
             {
-                if (resourceName.StartsWith("AssemblyNeutral/") && 
+                if (resourceName.StartsWith("AssemblyNeutral/") &&
                     resourceName.EndsWith(".dll"))
                 {
                     var assemblyName = Path.GetFileNameWithoutExtension(resourceName);

@@ -69,8 +69,9 @@ namespace Microsoft.Framework.Runtime
 
             while (di.Parent != null)
             {
-                if (di.EnumerateFiles(GlobalSettings.GlobalFileName).Any() ||
-                    di.EnumerateFiles("*.sln").Any())
+                var globalJsonPath = Path.Combine(di.FullName, GlobalSettings.GlobalFileName);
+
+                if (File.Exists(globalJsonPath))
                 {
                     return di.FullName;
                 }
