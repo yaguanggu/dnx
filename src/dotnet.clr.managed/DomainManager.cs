@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using dotnet.hosting;
 
 public class DomainManager : AppDomainManager
@@ -24,6 +26,12 @@ public class DomainManager : AppDomainManager
 
     private int Main(int argc, string[] argv)
     {
+        ThreadPool.UnsafeQueueUserWorkItem(_ =>
+        {
+            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        }, 
+        null);
+
         return RuntimeBootstrapper.Execute(argv);
     }
 
