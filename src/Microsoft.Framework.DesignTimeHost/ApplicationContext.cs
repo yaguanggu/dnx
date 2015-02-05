@@ -127,6 +127,22 @@ namespace Microsoft.Framework.DesignTimeHost
                 }
 
                 _waitingForDiagnostics.Clear();
+
+                // Notify the runtime of errors
+                foreach (var frameworkGroup in _waitingForCompiledAssemblies.Values)
+                {
+                    foreach (var connection in frameworkGroup)
+                    {
+                        if (connection.Version > 0)
+                        {
+                            connection.AssemblySent = true;
+                            connection.Connection.Transmit(message);
+                        }
+                    }
+                }
+
+                _waitingForCompiledAssemblies.Clear();
+                _requiresAssemblies.Clear();
             }
             finally
             {
@@ -714,6 +730,7 @@ namespace Microsoft.Framework.DesignTimeHost
             {
                 var obj = new JObject();
                 obj["MessageType"] = "Assembly";
+                obj["ContextId"] = Id;
                 obj["Errors"] = new JArray(project.Diagnostics.Errors);
                 obj["Warnings"] = new JArray(project.Diagnostics.Warnings);
                 obj["Blobs"] = 2;

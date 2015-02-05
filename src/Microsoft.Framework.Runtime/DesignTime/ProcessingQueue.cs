@@ -19,6 +19,7 @@ namespace Microsoft.Framework.Runtime
         public event Action<int> ProjectChanged;
         public event Action Closed;
         public event Action<IEnumerable<string>> ProjectSources;
+        public event Action<int?, string> Error;
 
         public ProcessingQueue(Stream stream)
         {
@@ -123,12 +124,32 @@ namespace Microsoft.Framework.Runtime
                             ProjectsInitialized(projectContexts);
                             break;
                         case "ProjectChanged":
+                            {
+                                //{
+                                //    "MessageType": "ProjectChanged",
+                                //    "ContextId": id,
+                                //}
+                                int id = obj.Value<int>("ContextId");
+                                ProjectChanged(id);
+                            }
+                            break;
+                        case "Error":
                             //{
-                            //    "MessageType": "ProjectChanged",
+                            //    "MessageType": "Error",
                             //    "ContextId": id,
+                            //    "Payload": {
+                            //        "Message": "",
+                            //        "Path": "",
+                            //        "Line": 0,
+                            //        "Column": 1
+                            //    }
                             //}
-                            int id = obj.Value<int>("ContextId");
-                            ProjectChanged(id);
+                            {
+                                var id = obj["ContextId"]?.Value<int>();
+                                var message = obj["Payload"].Value<string>("Message");
+
+                                Error(id, message);
+                            }
                             break;
                         default:
                             break;

@@ -112,42 +112,59 @@ namespace Microsoft.Framework.DesignTimeHost
 
         private static void WriteProjectContexts(Message message, ProcessingQueue queue, IDictionary<int, ApplicationContext> contexts)
         {
-            var projectContexts = contexts.Values.Select(p => new
+            try
             {
-                Id = p.Id,
-                ProjectPath = p.ApplicationPath
-            })
-            .ToList();
+                var projectContexts = contexts.Values.Select(p => new
+                {
+                    Id = p.Id,
+                    ProjectPath = p.ApplicationPath
+                })
+                .ToList();
 
-            var version = message.Payload?.Value<int>("Version") ?? 0;
+                var versionToken = message.Payload.HasValues ? message.Payload?["Version"] : null;
+                var version = versionToken != null ? versionToken.Value<int>() : 0;
 
-            queue.Send(writer =>
+                queue.Send(writer =>
+                {
+                    if (version == 0)
+                    {
+                        writer.Write("ProjectContexts");
+                        writer.Write(projectContexts.Count);
+                        for (int i = 0; i < projectContexts.Count; i++)
+                        {
+                            writer.Write(projectContexts[i].ProjectPath);
+                            writer.Write(projectContexts[i].Id);
+                        }
+                    }
+                    else
+                    {
+                        var obj = new JObject();
+                        obj["MessageType"] = "ProjectContexts";
+                        var projects = new JObject();
+                        obj["Projects"] = projects;
+
+                        foreach (var pair in projectContexts)
+                        {
+                            projects[pair.ProjectPath] = pair.Id;
+                        }
+
+                        writer.Write(obj.ToString(Formatting.None));
+                    }
+                });
+            }
+            catch (Exception ex)
             {
-                if (version == 0)
-                {
-                    writer.Write("ProjectContexts");
-                    writer.Write(projectContexts.Count);
-                    for (int i = 0; i < projectContexts.Count; i++)
-                    {
-                        writer.Write(projectContexts[i].ProjectPath);
-                        writer.Write(projectContexts[i].Id);
-                    }
-                }
-                else
-                {
-                    var obj = new JObject();
-                    obj["MessageType"] = "ProjectContexts";
-                    var projects = new JObject();
-                    obj["Projects"] = projects;
+                var error = new JObject();
+                error["Message"] = ex.Message;
 
-                    foreach (var pair in projectContexts)
-                    {
-                        obj[pair.Id] = pair.ProjectPath;
-                    }
+                queue.Send(new Message
+                {
+                    MessageType = "Error",
+                    Payload = error
+                });
 
-                    writer.Write(obj.ToString(Formatting.None));
-                }
-            });
+                throw;
+            }
         }
     }
 }
