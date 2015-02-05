@@ -13,6 +13,7 @@ using Microsoft.Framework.DesignTimeHost.Models.IncomingMessages;
 using Microsoft.Framework.DesignTimeHost.Models.OutgoingMessages;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Roslyn;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet;
 
@@ -139,14 +140,14 @@ namespace Microsoft.Framework.DesignTimeHost
             {
                 DrainInbox();
 
-                if (DoStageOne())
+                if (ResolveDependencies())
                 {
-                    Reconcile();
+                    SendOutgoingMessages();
                 }
 
-                if (DoStageTwo())
+                if (PerformCompilation())
                 {
-                    Reconcile();
+                    SendOutgoingMessages();
                 }
 
                 lock (_inbox)
@@ -235,8 +236,8 @@ namespace Microsoft.Framework.DesignTimeHost
                     break;
                 case "GetCompiledAssembly":
                     {
-                        var libraryKey = message.Payload.ToObject<RemoteLibraryKey>();
-                        var targetFramework = new FrameworkName(libraryKey.TargetFramework);
+                        var request = message.Payload.ToObject<CompiledAssemblyRequest>();
+                        var targetFramework = new FrameworkName(request.TargetFramework);
 
                         // Only set this the first time for the project
                         if (!_requiresAssemblies.ContainsKey(targetFramework))
@@ -254,7 +255,8 @@ namespace Microsoft.Framework.DesignTimeHost
 
                         waitingForCompiledAssemblies.Add(new CompiledAssemblyState
                         {
-                            Connection = message.Sender
+                            Connection = message.Sender,
+                            Version = request.Version
                         });
                     }
                     break;
@@ -270,7 +272,7 @@ namespace Microsoft.Framework.DesignTimeHost
             return true;
         }
 
-        private bool DoStageOne()
+        private bool ResolveDependencies()
         {
             State state = null;
 
@@ -360,7 +362,7 @@ namespace Microsoft.Framework.DesignTimeHost
             return true;
         }
 
-        private bool DoStageTwo()
+        private bool PerformCompilation()
         {
             bool calculateDiagnostics = _requiresCompilation.WasAssigned;
 
@@ -475,7 +477,7 @@ namespace Microsoft.Framework.DesignTimeHost
             return false;
         }
 
-        private void Reconcile()
+        private void SendOutgoingMessages()
         {
             if (IsDifferent(_local.ProjectInformation, _remote.ProjectInformation))
             {
@@ -619,8 +621,18 @@ namespace Microsoft.Framework.DesignTimeHost
 
                         waitingForCompiledAssembly.Connection.Transmit(writer =>
                         {
-                            writer.Write("ProjectChanged");
-                            writer.Write(Id);
+                            if (waitingForCompiledAssembly.Version == 0)
+                            {
+                                writer.Write("ProjectChanged");
+                                writer.Write(Id);
+                            }
+                            else
+                            {
+                                var obj = new JObject();
+                                obj["MessageType"] = "ProjectChanged";
+                                obj["ContextId"] = Id;
+                                writer.Write(obj.ToString(Formatting.None));
+                            }
                         });
 
                         waitingForCompiledAssemblies.Remove(waitingForCompiledAssembly);
@@ -645,10 +657,12 @@ namespace Microsoft.Framework.DesignTimeHost
                     {
                         Trace.TraceInformation("[ApplicationContext]: OnTransmit(Assembly)");
 
+                        int version = waitingForCompiledAssembly.Version;
+
                         waitingForCompiledAssembly.Connection.Transmit(writer =>
                         {
-                            WriteProjectSources(localProject, writer);
-                            WriteAssembly(localProject, writer);
+                            WriteProjectSources(version, localProject, writer);
+                            WriteAssembly(version, localProject, writer);
                         });
 
                         waitingForCompiledAssembly.AssemblySent = true;
@@ -657,30 +671,60 @@ namespace Microsoft.Framework.DesignTimeHost
             }
         }
 
-        private void WriteProjectSources(ProjectWorld project, BinaryWriter writer)
+        private void WriteProjectSources(int version, ProjectWorld project, BinaryWriter writer)
         {
-            writer.Write("Sources");
-            writer.Write(project.Sources.Files.Count);
-            foreach (var file in project.Sources.Files)
+            if (version == 0)
             {
-                writer.Write(file);
+                writer.Write("Sources");
+                writer.Write(project.Sources.Files.Count);
+                foreach (var file in project.Sources.Files)
+                {
+                    writer.Write(file);
+                }
+            }
+            else
+            {
+                var obj = new JObject();
+                obj["MessageType"] = "Sources";
+                obj["Files"] = new JArray(project.Sources.Files);
+                writer.Write(obj.ToString(Formatting.None));
             }
         }
 
-        private void WriteAssembly(ProjectWorld project, BinaryWriter writer)
+        private void WriteAssembly(int version, ProjectWorld project, BinaryWriter writer)
         {
-            writer.Write("Assembly");
-            writer.Write(Id);
-            writer.Write(project.Diagnostics.Warnings.Count);
-            foreach (var warning in project.Diagnostics.Warnings)
+            if (version == 0)
             {
-                writer.Write(warning);
+                writer.Write("Assembly");
+                writer.Write(Id);
+                writer.Write(project.Diagnostics.Warnings.Count);
+                foreach (var warning in project.Diagnostics.Warnings)
+                {
+                    writer.Write(warning);
+                }
+                writer.Write(project.Diagnostics.Errors.Count);
+                foreach (var error in project.Diagnostics.Errors)
+                {
+                    writer.Write(error);
+                }
+
+                WriteAssembly(project, writer);
             }
-            writer.Write(project.Diagnostics.Errors.Count);
-            foreach (var error in project.Diagnostics.Errors)
+            else
             {
-                writer.Write(error);
+                var obj = new JObject();
+                obj["MessageType"] = "Assembly";
+                obj["Errors"] = new JArray(project.Diagnostics.Errors);
+                obj["Warnings"] = new JArray(project.Diagnostics.Warnings);
+                obj["Blobs"] = 2;
+                writer.Write(obj.ToString(Formatting.None));
+
+                WriteAssembly(project, writer);
             }
+        }
+
+        private static void WriteAssembly(ProjectWorld project, BinaryWriter writer)
+        {
             writer.Write(project.Outputs.EmbeddedReferences.Count);
             foreach (var pair in project.Outputs.EmbeddedReferences)
             {
@@ -1087,12 +1131,13 @@ namespace Microsoft.Framework.DesignTimeHost
         private class CompiledAssemblyState
         {
             public ConnectionContext Connection { get; set; }
-
             public bool AssemblySent { get; set; }
+            public int Version { get; set; }
         }
 
-        private class RemoteLibraryKey
+        private class CompiledAssemblyRequest
         {
+            public int Version { get; set; }
             public string Name { get; set; }
             public string TargetFramework { get; set; }
             public string Configuration { get; set; }

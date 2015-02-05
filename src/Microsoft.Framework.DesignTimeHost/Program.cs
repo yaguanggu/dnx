@@ -8,8 +8,11 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Microsoft.Framework.DesignTimeHost.Models;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Common.DependencyInjection;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Framework.DesignTimeHost
 {
@@ -75,12 +78,12 @@ namespace Microsoft.Framework.DesignTimeHost
                 var stream = new NetworkStream(acceptSocket);
                 var queue = new ProcessingQueue(stream);
                 var connection = new ConnectionContext(
-                    contexts, 
-                    services, 
-                    cache, 
+                    contexts,
+                    services,
+                    cache,
                     cacheContextAccessor,
                     namedDependencyProvider,
-                    queue, 
+                    queue,
                     hostId);
 
                 queue.OnReceive += message =>
@@ -89,7 +92,7 @@ namespace Microsoft.Framework.DesignTimeHost
                     // sender
                     if (message.MessageType == "EnumerateProjectContexts")
                     {
-                        WriteProjectContexts(queue, contexts);
+                        WriteProjectContexts(message, queue, contexts);
                     }
                     else
                     {
@@ -107,23 +110,42 @@ namespace Microsoft.Framework.DesignTimeHost
             return Task.Factory.FromAsync((cb, state) => socket.BeginAccept(cb, state), ar => socket.EndAccept(ar), null);
         }
 
-        private static void WriteProjectContexts(ProcessingQueue queue, IDictionary<int, ApplicationContext> contexts)
+        private static void WriteProjectContexts(Message message, ProcessingQueue queue, IDictionary<int, ApplicationContext> contexts)
         {
-            var projects = contexts.Values.Select(p => new
+            var projectContexts = contexts.Values.Select(p => new
             {
                 Id = p.Id,
                 ProjectPath = p.ApplicationPath
             })
             .ToList();
 
+            var version = message.Payload?.Value<int>("Version") ?? 0;
+
             queue.Send(writer =>
             {
-                writer.Write("ProjectContexts");
-                writer.Write(projects.Count);
-                for (int i = 0; i < projects.Count; i++)
+                if (version == 0)
                 {
-                    writer.Write(projects[i].ProjectPath);
-                    writer.Write(projects[i].Id);
+                    writer.Write("ProjectContexts");
+                    writer.Write(projectContexts.Count);
+                    for (int i = 0; i < projectContexts.Count; i++)
+                    {
+                        writer.Write(projectContexts[i].ProjectPath);
+                        writer.Write(projectContexts[i].Id);
+                    }
+                }
+                else
+                {
+                    var obj = new JObject();
+                    obj["MessageType"] = "ProjectContexts";
+                    var projects = new JObject();
+                    obj["Projects"] = projects;
+
+                    foreach (var pair in projectContexts)
+                    {
+                        obj[pair.Id] = pair.ProjectPath;
+                    }
+
+                    writer.Write(obj.ToString(Formatting.None));
                 }
             });
         }
