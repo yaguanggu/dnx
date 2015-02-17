@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Versioning;
 
-namespace Microsoft.Framework.Runtime
+namespace Microsoft.Framework.Runtime.Roslyn
 {
     /// <summary>
     /// Stores information about the project

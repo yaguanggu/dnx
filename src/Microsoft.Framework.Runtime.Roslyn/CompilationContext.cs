@@ -17,7 +17,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
         public Project Project { get; private set; }
 
         // Processed information
-        public CSharpCompilation CSharpCompilation { get; set; }
+        public CSharpCompilation Compilation { get; set; }
 
         public IList<Diagnostic> Diagnostics { get; private set; }
 
@@ -31,7 +31,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
                                   Project project,
                                   FrameworkName targetFramework)
         {
-            CSharpCompilation = compilation;
+            Compilation = compilation;
             Diagnostics = new List<Diagnostic>();
             Project = project;
             ProjectContext = new ProjectContext(project, targetFramework);

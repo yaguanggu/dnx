@@ -6,13 +6,13 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace Microsoft.Framework.Runtime
+namespace Microsoft.Framework.Runtime.Roslyn
 {
     public interface IAfterCompileContext
     {
         IProjectContext ProjectContext { get; }
 
-        CSharpCompilation CSharpCompilation { get; set; }
+        CSharpCompilation Compilation { get; set; }
 
         Stream AssemblyStream { get; set; }
 

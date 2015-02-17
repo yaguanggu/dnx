@@ -33,16 +33,16 @@ namespace Microsoft.Framework.Runtime.Roslyn
 
         public Stream XmlDocStream { get; set; }
 
-        public CSharpCompilation CSharpCompilation
+        public CSharpCompilation Compilation
         {
             get
             {
-                return _context.CSharpCompilation;
+                return _context.Compilation;
             }
 
             set
             {
-                _context.CSharpCompilation = value;
+                _context.Compilation = value;
             }
         }
 

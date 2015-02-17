@@ -20,7 +20,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
         public RoslynProjectReference(CompilationContext compilationContext)
         {
             CompilationContext = compilationContext;
-            MetadataReference = compilationContext.CSharpCompilation.ToMetadataReference(embedInteropTypes: compilationContext.Project.EmbedInteropTypes);
+            MetadataReference = compilationContext.Compilation.ToMetadataReference(embedInteropTypes: compilationContext.Project.EmbedInteropTypes);
             Name = compilationContext.Project.Name;
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
         public IDiagnosticResult GetDiagnostics()
         {
             var diagnostics = CompilationContext.Diagnostics
-                .Concat(CompilationContext.CSharpCompilation.GetDiagnostics());
+                .Concat(CompilationContext.Compilation.GetDiagnostics());
 
             return CreateDiagnosticResult(success: true, diagnostics: diagnostics);
         }
@@ -57,7 +57,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
         public IList<ISourceReference> GetSources()
         {
             // REVIEW: Raw sources?
-            return CompilationContext.CSharpCompilation
+            return CompilationContext.Compilation
                                      .SyntaxTrees
                                      .Select(t => t.FilePath)
                                      .Where(path => !string.IsNullOrEmpty(path))
@@ -80,12 +80,12 @@ namespace Microsoft.Framework.Runtime.Roslyn
 
                 if (_supportsPdbGeneration.Value)
                 {
-                    emitResult = CompilationContext.CSharpCompilation.Emit(assemblyStream, pdbStream: pdbStream, manifestResources: resources);
+                    emitResult = CompilationContext.Compilation.Emit(assemblyStream, pdbStream: pdbStream, manifestResources: resources);
                 }
                 else
                 {
                     Logger.TraceWarning("PDB generation is not supported on this platform");
-                    emitResult = CompilationContext.CSharpCompilation.Emit(assemblyStream, manifestResources: resources);
+                    emitResult = CompilationContext.Compilation.Emit(assemblyStream, manifestResources: resources);
                 }
 
                 sw.Stop();
@@ -131,7 +131,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
         public void EmitReferenceAssembly(Stream stream)
         {
             var emitOptions = new EmitOptions(metadataOnly: true);
-            CompilationContext.CSharpCompilation.Emit(stream, options: emitOptions);
+            CompilationContext.Compilation.Emit(stream, options: emitOptions);
         }
 
         public IDiagnosticResult EmitAssembly(string outputPath)
@@ -147,7 +147,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
             using (var xmlDocStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
             using (var assemblyStream = new MemoryStream())
-            using (var win32resStream = CompilationContext.CSharpCompilation.CreateDefaultWin32Resources(
+            using (var win32resStream = CompilationContext.Compilation.CreateDefaultWin32Resources(
                 versionResource: true,
                 noManifest: false,
                 manifestContents: null,
@@ -165,7 +165,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
                 if (_supportsPdbGeneration.Value)
                 {
                     var options = new EmitOptions(pdbFilePath: pdbPath);
-                    emitResult = CompilationContext.CSharpCompilation.Emit(
+                    emitResult = CompilationContext.Compilation.Emit(
                         assemblyStream,
                         pdbStream: pdbStream,
                         xmlDocumentationStream: xmlDocStream,
@@ -176,7 +176,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
                 else
                 {
                     Logger.TraceWarning("PDB generation is not supported on this platform");
-                    emitResult = CompilationContext.CSharpCompilation.Emit(
+                    emitResult = CompilationContext.Compilation.Emit(
                         assemblyStream,
                         xmlDocumentationStream: xmlDocStream,
                         manifestResources: resources,
