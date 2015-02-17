@@ -20,7 +20,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
         public RoslynProjectReference(CompilationContext compilationContext)
         {
             CompilationContext = compilationContext;
-            MetadataReference = compilationContext.Compilation.ToMetadataReference(embedInteropTypes: compilationContext.Project.EmbedInteropTypes);
+            MetadataReference = compilationContext.CSharpCompilation.ToMetadataReference(embedInteropTypes: compilationContext.Project.EmbedInteropTypes);
             Name = compilationContext.Project.Name;
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
         public IDiagnosticResult GetDiagnostics()
         {
             var diagnostics = CompilationContext.Diagnostics
-                .Concat(CompilationContext.Compilation.GetDiagnostics());
+                .Concat(CompilationContext.CSharpCompilation.GetDiagnostics());
 
             return CreateDiagnosticResult(success: true, diagnostics: diagnostics);
         }
@@ -57,7 +57,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
         public IList<ISourceReference> GetSources()
         {
             // REVIEW: Raw sources?
-            return CompilationContext.Compilation
+            return CompilationContext.CSharpCompilation
                                      .SyntaxTrees
                                      .Select(t => t.FilePath)
                                      .Where(path => !string.IsNullOrEmpty(path))
@@ -73,19 +73,19 @@ namespace Microsoft.Framework.Runtime.Roslyn
                 IList<ResourceDescription> resources = CompilationContext.Resources;
 
                 Logger.TraceInformation("[{0}]: Emitting assembly for {1}", GetType().Name, Name);
-                
+
                 var sw = Stopwatch.StartNew();
 
                 EmitResult emitResult = null;
 
                 if (_supportsPdbGeneration.Value)
                 {
-                    emitResult = CompilationContext.Compilation.Emit(assemblyStream, pdbStream: pdbStream, manifestResources: resources);
+                    emitResult = CompilationContext.CSharpCompilation.Emit(assemblyStream, pdbStream: pdbStream, manifestResources: resources);
                 }
                 else
                 {
                     Logger.TraceWarning("PDB generation is not supported on this platform");
-                    emitResult = CompilationContext.Compilation.Emit(assemblyStream, manifestResources: resources);
+                    emitResult = CompilationContext.CSharpCompilation.Emit(assemblyStream, manifestResources: resources);
                 }
 
                 sw.Stop();
@@ -95,25 +95,33 @@ namespace Microsoft.Framework.Runtime.Roslyn
                 var diagnostics = CompilationContext.Diagnostics.Concat(
                     emitResult.Diagnostics);
 
-                if (!emitResult.Success ||
-                    diagnostics.Any(RoslynDiagnosticUtilities.IsError))
+                var afterCompileContext = new AfterCompileContext(CompilationContext, diagnostics)
                 {
-                    throw new RoslynCompilationException(diagnostics);
+                    AssemblyStream = assemblyStream,
+                    SymbolStream = pdbStream
+                };
+
+                foreach (var m in CompilationContext.Modules)
+                {
+                    m.AfterCompile(afterCompileContext);
+                }
+
+                if (!emitResult.Success ||
+                    afterCompileContext.Diagnostics.Any(RoslynDiagnosticUtilities.IsError))
+                {
+                    throw new RoslynCompilationException(afterCompileContext.Diagnostics);
                 }
 
                 Assembly assembly = null;
 
-                // Rewind the stream
-                assemblyStream.Seek(0, SeekOrigin.Begin);
-                pdbStream.Seek(0, SeekOrigin.Begin);
-
-                if (pdbStream.Length == 0)
+                if (afterCompileContext.SymbolStream != null && 
+                    afterCompileContext.SymbolStream.Length == 0)
                 {
-                    assembly = loadContext.LoadStream(assemblyStream, assemblySymbols: null);
+                    assembly = loadContext.LoadStream(afterCompileContext.AssemblyStream, assemblySymbols: null);
                 }
                 else
                 {
-                    assembly = loadContext.LoadStream(assemblyStream, pdbStream);
+                    assembly = loadContext.LoadStream(afterCompileContext.AssemblyStream, afterCompileContext.SymbolStream);
                 }
 
                 return assembly;
@@ -123,7 +131,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
         public void EmitReferenceAssembly(Stream stream)
         {
             var emitOptions = new EmitOptions(metadataOnly: true);
-            CompilationContext.Compilation.Emit(stream, options: emitOptions);
+            CompilationContext.CSharpCompilation.Emit(stream, options: emitOptions);
         }
 
         public IDiagnosticResult EmitAssembly(string outputPath)
@@ -139,7 +147,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
             using (var xmlDocStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
             using (var assemblyStream = new MemoryStream())
-            using (var win32resStream = CompilationContext.Compilation.CreateDefaultWin32Resources(
+            using (var win32resStream = CompilationContext.CSharpCompilation.CreateDefaultWin32Resources(
                 versionResource: true,
                 noManifest: false,
                 manifestContents: null,
@@ -152,12 +160,12 @@ namespace Microsoft.Framework.Runtime.Roslyn
 
                 var sw = Stopwatch.StartNew();
 
-                EmitResult result = null;
+                EmitResult emitResult = null;
 
                 if (_supportsPdbGeneration.Value)
                 {
                     var options = new EmitOptions(pdbFilePath: pdbPath);
-                    result = CompilationContext.Compilation.Emit(
+                    emitResult = CompilationContext.CSharpCompilation.Emit(
                         assemblyStream,
                         pdbStream: pdbStream,
                         xmlDocumentationStream: xmlDocStream,
@@ -168,7 +176,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
                 else
                 {
                     Logger.TraceWarning("PDB generation is not supported on this platform");
-                    result = CompilationContext.Compilation.Emit(
+                    emitResult = CompilationContext.CSharpCompilation.Emit(
                         assemblyStream,
                         xmlDocumentationStream: xmlDocStream,
                         manifestResources: resources,
@@ -179,41 +187,60 @@ namespace Microsoft.Framework.Runtime.Roslyn
 
                 Logger.TraceInformation("[{0}]: Emitted {1} in {2}ms", GetType().Name, Name, sw.ElapsedMilliseconds);
 
-                var diagnostics = new List<Diagnostic>(CompilationContext.Diagnostics);
-                diagnostics.AddRange(result.Diagnostics);
-
-                if (!result.Success ||
-                    diagnostics.Any(RoslynDiagnosticUtilities.IsError))
+                var afterCompileContext = new AfterCompileContext(CompilationContext, emitResult.Diagnostics)
                 {
-                    return CreateDiagnosticResult(result.Success, diagnostics);
+                    AssemblyStream = assemblyStream,
+                    SymbolStream = pdbStream,
+                    XmlDocStream = xmlDocStream
+                };
+
+                foreach (var m in CompilationContext.Modules)
+                {
+                    m.AfterCompile(afterCompileContext);
+                }
+
+                if (!emitResult.Success ||
+                    afterCompileContext.Diagnostics.Any(RoslynDiagnosticUtilities.IsError))
+                {
+                    return CreateDiagnosticResult(emitResult.Success, afterCompileContext.Diagnostics);
                 }
 
                 // Ensure there's an output directory
                 Directory.CreateDirectory(outputPath);
 
-                assemblyStream.Position = 0;
-                pdbStream.Position = 0;
-                xmlDocStream.Position = 0;
-
-                using (var assemblyFileStream = File.Create(assemblyPath))
+                if (afterCompileContext.AssemblyStream != null)
                 {
-                    assemblyStream.CopyTo(assemblyFileStream);
-                }
+                    afterCompileContext.AssemblyStream.Position = 0;
 
-                using (var xmlDocFileStream = File.Create(xmlDocPath))
-                {
-                    xmlDocStream.CopyTo(xmlDocFileStream);
-                }
-
-                if (!PlatformHelper.IsMono)
-                {
-                    using (var pdbFileStream = File.Create(pdbPath))
+                    using (var assemblyFileStream = File.Create(assemblyPath))
                     {
-                        pdbStream.CopyTo(pdbFileStream);
+                        afterCompileContext.AssemblyStream.CopyTo(assemblyFileStream);
                     }
                 }
 
-                return CreateDiagnosticResult(result.Success, diagnostics);
+                if (afterCompileContext.XmlDocStream != null)
+                {
+                    afterCompileContext.XmlDocStream.Position = 0;
+                    using (var xmlDocFileStream = File.Create(xmlDocPath))
+                    {
+                        afterCompileContext.XmlDocStream.CopyTo(xmlDocFileStream);
+                    }
+                }
+
+                if (_supportsPdbGeneration.Value)
+                {
+                    if (afterCompileContext.SymbolStream != null)
+                    {
+                        afterCompileContext.SymbolStream.Position = 0;
+
+                        using (var pdbFileStream = File.Create(pdbPath))
+                        {
+                            afterCompileContext.SymbolStream.CopyTo(pdbFileStream);
+                        }
+                    }
+                }
+
+                return CreateDiagnosticResult(emitResult.Success, afterCompileContext.Diagnostics);
             }
         }
 

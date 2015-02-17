@@ -4,12 +4,21 @@
 namespace Microsoft.Framework.Runtime
 {
     /// <summary>
-    /// Summary description for ICompileModule
+    /// Module that allows plugging into the compilation pipeline
     /// </summary>
     public interface ICompileModule
     {
+        /// <summary>
+        /// Runs after the roslyn compilation is created but before anything is emitted
+        /// </summary>
+        /// <param name="context"></param>
         void BeforeCompile(IBeforeCompileContext context);
 
+        /// <summary>
+        /// Runs after the compilation is emitted. Changing the compilation will not have any effect at this point
+        /// but the assembly can be changed before it is saved on disk or loaded into memory.
+        /// </summary>
+        /// <param name="context"></param>
         void AfterCompile(IAfterCompileContext context);
     }
 }

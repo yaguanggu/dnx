@@ -12,6 +12,8 @@ namespace Microsoft.Framework.Runtime
     {
         CSharpCompilation CSharpCompilation { get; set; }
 
+        IProjectContext ProjectContext { get; }
+
         IList<ResourceDescription> Resources { get; }
 
         IList<Diagnostic> Diagnostics { get; }

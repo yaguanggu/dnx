@@ -1,16 +1,24 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using System.Collections.Generic;
 
 namespace Microsoft.Framework.Runtime
 {
     public interface IAfterCompileContext
     {
+        IProjectContext ProjectContext { get; }
+
         CSharpCompilation CSharpCompilation { get; set; }
+
+        Stream AssemblyStream { get; set; }
+
+        Stream SymbolStream { get; set; }
+
+        Stream XmlDocStream { get; set; }
 
         IList<Diagnostic> Diagnostics { get; }
     }
