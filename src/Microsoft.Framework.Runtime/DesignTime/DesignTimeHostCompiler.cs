@@ -52,7 +52,6 @@ namespace Microsoft.Framework.Runtime
             obj["Name"] = library.Name;
             obj["Configuration"] = library.Configuration;
             obj["TargetFramework"] = library.TargetFramework.ToString();
-            obj["Aspect"] = library.Aspect;
 
             _queue.Send(new DesignTimeMessage
             {

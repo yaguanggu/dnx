@@ -64,32 +64,7 @@ namespace Microsoft.Framework.Runtime
             }
         }
 
-        public ILibraryExport GetLibraryExport(string name)
-        {
-            return GetLibraryExport(name, aspect: null);
-        }
-
-        public ILibraryExport GetAllExports(string name)
-        {
-            return GetAllExports(name, aspect: null);
-        }
-
-        public IEnumerable<ILibraryInformation> GetReferencingLibraries(string name)
-        {
-            return GetReferencingLibraries(name, aspect: null);
-        }
-
         public ILibraryInformation GetLibraryInformation(string name)
-        {
-            return GetLibraryInformation(name, aspect: null);
-        }
-
-        public IEnumerable<ILibraryInformation> GetLibraries()
-        {
-            return GetLibraries(aspect: null);
-        }
-
-        public ILibraryInformation GetLibraryInformation(string name, string aspect)
         {
             ILibraryInformation information;
             if (LibraryLookup.TryGetValue(name, out information))
@@ -100,7 +75,7 @@ namespace Microsoft.Framework.Runtime
             return null;
         }
 
-        public IEnumerable<ILibraryInformation> GetReferencingLibraries(string name, string aspect)
+        public IEnumerable<ILibraryInformation> GetReferencingLibraries(string name)
         {
             IEnumerable<ILibraryInformation> libraries;
             if (InverseGraph.TryGetValue(name, out libraries))
@@ -111,26 +86,24 @@ namespace Microsoft.Framework.Runtime
             return Enumerable.Empty<ILibraryInformation>();
         }
 
-        public ILibraryExport GetLibraryExport(string name, string aspect)
+        public ILibraryExport GetLibraryExport(string name)
         {
             return _libraryExportProvider.GetLibraryExport(new LibraryKey
             {
                 Name = name,
                 TargetFramework = _targetFramework,
-                Configuration = _configuration,
-                Aspect = aspect,
+                Configuration = _configuration
             });
         }
 
-        public ILibraryExport GetAllExports(string name, string aspect)
+        public ILibraryExport GetAllExports(string name)
         {
             var key = Tuple.Create(
                 nameof(LibraryManager),
                 nameof(GetAllExports),
                 name,
                 _targetFramework,
-                _configuration,
-                aspect);
+                _configuration);
 
             return _cache.Get<ILibraryExport>(key, ctx =>
             ProjectExportProviderHelper.GetExportsRecursive(
@@ -142,13 +115,12 @@ namespace Microsoft.Framework.Runtime
                     Name = name,
                     TargetFramework = _targetFramework,
                     Configuration = _configuration,
-                    Aspect = aspect,
                 },
                 dependenciesOnly: false)
             );
         }
 
-        public IEnumerable<ILibraryInformation> GetLibraries(string aspect)
+        public IEnumerable<ILibraryInformation> GetLibraries()
         {
             EnsureInitialized();
             return _graph.Values;

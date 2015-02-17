@@ -14,8 +14,7 @@ namespace Microsoft.Framework.Runtime
             {
                 Name = name,
                 TargetFramework = target.TargetFramework,
-                Configuration = target.Configuration,
-                Aspect = target.Aspect,
+                Configuration = target.Configuration
             };
         }
 
@@ -25,19 +24,7 @@ namespace Microsoft.Framework.Runtime
             {
                 Name = target.Name,
                 TargetFramework = targetFramework,
-                Configuration = target.Configuration,
-                Aspect = target.Aspect,
-            };
-        }
-
-        public static ILibraryKey ChangeAspect(this ILibraryKey target, string aspect)
-        {
-            return new LibraryKey
-            {
-                Name = target.Name,
-                TargetFramework = target.TargetFramework,
-                Configuration = target.Configuration,
-                Aspect = aspect,
+                Configuration = target.Configuration
             };
         }
     }

@@ -12,6 +12,5 @@ namespace Microsoft.Framework.Runtime
         string Name { get; }
         FrameworkName TargetFramework { get; }
         string Configuration { get; }
-        string Aspect { get; }
     }
 }

@@ -36,7 +36,7 @@ namespace Microsoft.Framework.Runtime
             Func<ILibraryInformation, bool> include)
         {
             var dependencyStopWatch = Stopwatch.StartNew();
-            Logger.TraceInformation("[{0}]: Resolving references for '{1}' {2}", typeof(ProjectExportProviderHelper).Name, target.Name, target.Aspect);
+            Logger.TraceInformation("[{0}]: Resolving references for '{1}' {2}", typeof(ProjectExportProviderHelper).Name, target.Name);
 
             var references = new Dictionary<string, IMetadataReference>(StringComparer.OrdinalIgnoreCase);
             var sourceReferences = new Dictionary<string, ISourceReference>(StringComparer.OrdinalIgnoreCase);
@@ -47,7 +47,7 @@ namespace Microsoft.Framework.Runtime
 
             var rootNode = new Node
             {
-                Library = manager.GetLibraryInformation(target.Name, target.Aspect)
+                Library = manager.GetLibraryInformation(target.Name)
             };
 
             stack.Enqueue(rootNode);
@@ -65,8 +65,7 @@ namespace Microsoft.Framework.Runtime
                 if (include(node.Library))
                 {
                     var libraryExport = libraryExportProvider.GetLibraryExport(target
-                        .ChangeName(node.Library.Name)
-                        .ChangeAspect(null));
+                        .ChangeName(node.Library.Name));
 
                     if (libraryExport == null)
                     {
@@ -92,7 +91,7 @@ namespace Microsoft.Framework.Runtime
                 {
                     var childNode = new Node
                     {
-                        Library = manager.GetLibraryInformation(dependency, null),
+                        Library = manager.GetLibraryInformation(dependency),
                         Parent = node
                     };
 

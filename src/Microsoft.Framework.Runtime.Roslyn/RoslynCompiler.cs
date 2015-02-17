@@ -52,14 +52,6 @@ namespace Microsoft.Framework.Runtime.Roslyn
             var path = project.ProjectDirectory;
             var name = project.Name;
 
-            var isMainAspect = string.IsNullOrEmpty(target.Aspect);
-            var isPreprocessAspect = string.Equals(target.Aspect, "preprocess", StringComparison.OrdinalIgnoreCase);
-
-            if (!string.IsNullOrEmpty(target.Aspect))
-            {
-                name += "!" + target.Aspect;
-            }
-
             _watcher.WatchProject(path);
 
             _watcher.WatchFile(project.ProjectFilePath);
@@ -68,13 +60,10 @@ namespace Microsoft.Framework.Runtime.Roslyn
             {
                 _cacheContextAccessor.Current.Monitor(new FileWriteTimeCacheDependency(project.ProjectFilePath));
 
-                if (isMainAspect)
-                {
-                    // Monitor the trigger {projectName}_BuildOutputs
-                    var buildOutputsName = project.Name + "_BuildOutputs";
+                // Monitor the trigger {projectName}_BuildOutputs
+                var buildOutputsName = project.Name + "_BuildOutputs";
 
-                    _cacheContextAccessor.Current.Monitor(_namedDependencyProvider.GetNamedDependency(buildOutputsName));
-                }
+                _cacheContextAccessor.Current.Monitor(_namedDependencyProvider.GetNamedDependency(buildOutputsName));
             }
 
             var exportedReferences = incomingReferences.Select(ConvertMetadataReference);
@@ -85,15 +74,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
             var compilationSettings = project.GetCompilerOptions(target.TargetFramework, target.Configuration)
                                              .ToCompilationSettings(target.TargetFramework);
 
-            var sourceFiles = Enumerable.Empty<String>();
-            if (isMainAspect)
-            {
-                sourceFiles = project.Files.SourceFiles;
-            }
-            else if (isPreprocessAspect)
-            {
-                sourceFiles = project.Files.PreprocessSourceFiles;
-            }
+            var sourceFiles = project.Files.SourceFiles;
 
             var parseOptions = new CSharpParseOptions(languageVersion: compilationSettings.LanguageVersion,
                                                       preprocessorSymbols: compilationSettings.Defines);
@@ -102,8 +83,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
                 project,
                 sourceFiles,
                 incomingSourceReferences,
-                parseOptions,
-                isMainAspect);
+                parseOptions);
 
             var embeddedReferences = incomingReferences.OfType<IMetadataEmbeddedReference>()
                                                        .ToDictionary(a => a.Name, ConvertMetadataReference);
@@ -120,38 +100,6 @@ namespace Microsoft.Framework.Runtime.Roslyn
             compilation = ApplyVersionInfo(compilation, project, parseOptions);
 
             var compilationContext = new CompilationContext(compilation, project, target.TargetFramework);
-
-            if (isMainAspect && project.Files.PreprocessSourceFiles.Any())
-            {
-                try
-                {
-                    var modules = GetCompileModules(target).Modules;
-
-                    foreach (var m in modules)
-                    {
-                        compilationContext.Modules.Add(m);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var compilationException = ex.InnerException as RoslynCompilationException;
-
-                    if (compilationException != null)
-                    {
-                        // Add diagnostics from the precompile step
-                        foreach (var diag in compilationException.Diagnostics)
-                        {
-                            compilationContext.Diagnostics.Add(diag);
-                        }
-
-                        Logger.TraceError("[{0}]: Failed loading meta assembly '{1}'", GetType().Name, name);
-                    }
-                    else
-                    {
-                        Logger.TraceError("[{0}]: Failed loading meta assembly '{1}':\n {2}", GetType().Name, name, ex);
-                    }
-                }
-            }
 
             if (compilationContext.Modules.Count > 0)
             {
@@ -229,17 +177,13 @@ namespace Microsoft.Framework.Runtime.Roslyn
         private IList<SyntaxTree> GetSyntaxTrees(Project project,
                                                  IEnumerable<string> sourceFiles,
                                                  IEnumerable<ISourceReference> sourceReferences,
-                                                 CSharpParseOptions parseOptions,
-                                                 bool isMainAspect)
+                                                 CSharpParseOptions parseOptions)
         {
             var trees = new List<SyntaxTree>();
 
             var dirs = new HashSet<string>();
 
-            if (isMainAspect)
-            {
-                dirs.Add(project.ProjectDirectory);
-            }
+            dirs.Add(project.ProjectDirectory);
 
             foreach (var sourcePath in sourceFiles)
             {

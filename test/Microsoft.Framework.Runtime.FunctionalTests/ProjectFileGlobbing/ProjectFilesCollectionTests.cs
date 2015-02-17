@@ -50,17 +50,7 @@ namespace Microsoft.Framework.Runtime.FunctionalTests.ProjectFileGlobbing
                 @"src\project\compiler\resources\sub\resource2.res",
                 @"src\project\compiler\resources\sub\sub\resource3.res");
         }
-
-        [Fact]
-        public void DefaultSearchPathForPreprocessSource()
-        {
-            var testFilesCollection = CreateFilesCollection(@"{}", "src\\project");
-            VerifyFilePathsCollection(testFilesCollection.PreprocessSourceFiles,
-                @"src\project\compiler\preprocess\preprocess-source1.cs",
-                @"src\project\compiler\preprocess\sub\preprocess-source2.cs",
-                @"src\project\compiler\preprocess\sub\sub\preprocess-source3.cs");
-        }
-
+        
         [Fact]
         public void DefaultSearchPathForShared()
         {

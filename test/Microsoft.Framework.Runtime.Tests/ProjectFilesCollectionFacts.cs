@@ -30,7 +30,6 @@ namespace Microsoft.Framework.Runtime.Tests
             Assert.Equal(new[] { "*.cs", @"../*.cs" }, target.SourcePatterns);
             Assert.Equal(new[] { @"buggy/*.*" }, target.ExcludePatterns);
             Assert.Equal(new[] { @"no_pack/*.*" }, target.BundleExcludePatterns);
-            Assert.Equal(new[] { @"other/**/*.cs", "*.cs", "*.*" }, target.PreprocessPatterns);
             Assert.Equal(new[] { @"shared/**/*.cs" }, target.SharedPatterns);
             Assert.Equal(new[] { "a.cs", @"foo.js" }, target.ResourcesPatterns);
         }
@@ -54,7 +53,6 @@ namespace Microsoft.Framework.Runtime.Tests
             Assert.Equal(new[] { "*.cs", @"../*.cs" }, target.SourcePatterns);
             Assert.Equal(new[] { @"buggy/*.*" }, target.ExcludePatterns);
             Assert.Equal(new[] { @"no_pack/*.*" }, target.BundleExcludePatterns);
-            Assert.Equal(new[] { @"other/**/*.cs", "*.cs", "*.*" }, target.PreprocessPatterns);
             Assert.Equal(new[] { @"shared/**/*.cs", @"../../shared/*.cs" }, target.SharedPatterns);
             Assert.Equal(new[] { "a.cs", @"foo.js" }, target.ResourcesPatterns);
         }
@@ -71,7 +69,6 @@ namespace Microsoft.Framework.Runtime.Tests
             Assert.Equal(ProjectFilesCollection.DefaultSourcePatterns, target.SourcePatterns);
             Assert.Equal(ProjectFilesCollection.DefaultExcludePatterns, target.ExcludePatterns);
             Assert.Equal(ProjectFilesCollection.DefaultBundleExcludePatterns, target.BundleExcludePatterns);
-            Assert.Equal(ProjectFilesCollection.DefaultPreprocessPatterns, target.PreprocessPatterns);
             Assert.Equal(ProjectFilesCollection.DefaultSharedPatterns, target.SharedPatterns);
             Assert.Equal(ProjectFilesCollection.DefaultResourcesPatterns, target.ResourcesPatterns);
         }

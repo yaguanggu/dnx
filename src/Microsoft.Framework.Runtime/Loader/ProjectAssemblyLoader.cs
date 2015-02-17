@@ -29,28 +29,13 @@ namespace Microsoft.Framework.Runtime.Loader
 
         public Assembly Load(string name, IAssemblyLoadContext loadContext)
         {
-            // An assembly name like "MyLibrary!alternate!more-text"
-            // is parsed into:
-            // name == "MyLibrary"
-            // aspect == "alternate"
-            // and the more-text may be used to force a recompilation of an aspect that would
-            // otherwise have been cached by some layer within Assembly.Load
-
-            string aspect = null;
-            var parts = name.Split(new[] { '!' }, 3);
-            if (parts.Length != 1)
-            {
-                name = parts[0];
-                aspect = parts[1];
-            }
-
             Project project;
             if (!_projectResolver.TryResolveProject(name, out project))
             {
                 return null;
             }
 
-            var export = _libraryManager.GetLibraryExport(name, aspect);
+            var export = _libraryManager.GetLibraryExport(name);
 
             if (export == null)
             {
