@@ -30,17 +30,12 @@ namespace Microsoft.Framework.Runtime.Roslyn
         public IMetadataProjectReference GetProjectReference(
             Project project,
             ILibraryKey target,
-            Func<ILibraryExport> referenceResolver)
+            IProjectDependencyProvider projectDependencyProvider)
         {
-            var export = referenceResolver();
-            var incomingReferences = export.MetadataReferences;
-            var incomingSourceReferences = export.SourceReferences;
-
             var compliationContext = _compiler.CompileProject(
                 project,
                 target,
-                incomingReferences,
-                incomingSourceReferences);
+                projectDependencyProvider);
 
             if (compliationContext == null)
             {

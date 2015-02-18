@@ -15,7 +15,6 @@ namespace Microsoft.Framework.Runtime
 
         public static LibraryDependencyTypeKeyword Default;
         public static LibraryDependencyTypeKeyword Build;
-        public static LibraryDependencyTypeKeyword Preprocess;
         public static LibraryDependencyTypeKeyword Private;
         public static LibraryDependencyTypeKeyword Dev;
 
@@ -74,14 +73,6 @@ namespace Microsoft.Framework.Runtime
                 {
                     LibraryDependencyTypeFlag.MainSource,
                     LibraryDependencyTypeFlag.PreprocessComponent,
-                },
-                flagsToRemove: emptyFlags);
-
-            Preprocess = Declare(
-                "preprocess",
-                flagsToAdd: new[]
-                {
-                    LibraryDependencyTypeFlag.PreprocessReference,
                 },
                 flagsToRemove: emptyFlags);
 

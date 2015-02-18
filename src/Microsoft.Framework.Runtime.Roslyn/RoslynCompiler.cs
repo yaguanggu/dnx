@@ -46,9 +46,12 @@ namespace Microsoft.Framework.Runtime.Roslyn
         public CompilationContext CompileProject(
             Project project,
             ILibraryKey target,
-            IEnumerable<IMetadataReference> incomingReferences,
-            IEnumerable<ISourceReference> incomingSourceReferences)
+            IProjectDependencyProvider projectDependencyProvider)
         {
+            var export = projectDependencyProvider.GetDependencyExport();
+            var incomingReferences = export.MetadataReferences;
+            var incomingSourceReferences = export.SourceReferences;
+
             var path = project.ProjectDirectory;
             var name = project.Name;
 
@@ -101,6 +104,8 @@ namespace Microsoft.Framework.Runtime.Roslyn
 
             var compilationContext = new CompilationContext(compilation, project, target.TargetFramework);
 
+            var modules = GetCompileModules(target, projectDependencyProvider);
+
             if (compilationContext.Modules.Count > 0)
             {
                 var precompSw = Stopwatch.StartNew();
@@ -119,7 +124,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
             return compilationContext;
         }
 
-        private CompilationModules GetCompileModules(ILibraryKey target)
+        private CompilationModules GetCompileModules(ILibraryKey target, IProjectDependencyProvider projectDependencyProvider)
         {
             // The only thing that matters is the runtime environment
             // when loading the compilation modules, so use that as the cache key
@@ -135,14 +140,23 @@ namespace Microsoft.Framework.Runtime.Roslyn
 
                 var childContext = _loadContextFactory.Create();
 
-                var preprocessAssembly = childContext.Load(target.Name + "!preprocess");
-
-                foreach (var preprocessType in preprocessAssembly.ExportedTypes)
+                foreach (var dependency in projectDependencyProvider.GetDevelopmentDependencies())
                 {
-                    if (preprocessType.GetTypeInfo().ImplementedInterfaces.Contains(typeof(ICompileModule)))
+                    // Detect specific preprocess dependency here
+
+                    foreach (var assemblyName in dependency.LoadableAssemblies)
                     {
-                        var module = (ICompileModule)ActivatorUtilities.CreateInstance(_services, preprocessType);
-                        modules.Add(module);
+                        var assembly = childContext.Load(assemblyName.Name);
+
+                        foreach (var type in assembly.ExportedTypes)
+                        {
+                            if (type.GetTypeInfo().ImplementedInterfaces.Contains(typeof(ICompileModule)))
+                            {
+                                var module = (ICompileModule)ActivatorUtilities.CreateInstance(_services, type);
+                                modules.Add(module);
+                            }
+                        }
+
                     }
                 }
 

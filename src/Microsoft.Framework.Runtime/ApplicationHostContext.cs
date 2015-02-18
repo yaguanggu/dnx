@@ -58,6 +58,16 @@ namespace Microsoft.Framework.Runtime
                 unresolvedDependencyProvider
             });
 
+            // The only difference here is that we're only going to consider
+            // development dependencies in the initial walk
+            DevDependencyWalker = new DependencyWalker(new IDependencyProvider[] {
+                new ProjectReferenceDependencyProvider(ProjectResolver) { },
+                new NuGetDependencyResolver(new PackageRepository(PackagesDirectory)),
+                new ReferenceAssemblyDependencyResolver(FrameworkReferenceResolver),
+                new GacDependencyResolver(),
+                new UnresolvedDependencyProvider()
+            });
+
             LibraryExportProvider = new CompositeLibraryExportProvider(new ILibraryExportProvider[] {
                 new ProjectLibraryExportProvider(ProjectResolver, ServiceProvider),
                 referenceAssemblyDependencyResolver,
@@ -136,6 +146,7 @@ namespace Microsoft.Framework.Runtime
         public ILibraryExportProvider LibraryExportProvider { get; private set; }
         public ILibraryManager LibraryManager { get; private set; }
         public DependencyWalker DependencyWalker { get; private set; }
+        public DependencyWalker DevDependencyWalker { get; private set; }
         public FrameworkReferenceResolver FrameworkReferenceResolver { get; private set; }
 
         public string Configuration { get; private set; }

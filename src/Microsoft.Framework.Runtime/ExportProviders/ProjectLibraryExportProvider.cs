@@ -81,19 +81,11 @@ namespace Microsoft.Framework.Runtime
 
                     Logger.TraceInformation("[{0}]: GetProjectReference({1}, {2}, {3}, {4})", project.LanguageServices.ProjectReferenceProvider.TypeName, target.Name, target.TargetFramework, target.Configuration);
 
-                    // Get the exports for the project dependencies
-                    var projectExport = new Lazy<ILibraryExport>(() => ProjectExportProviderHelper.GetExportsRecursive(
-                        cache,
-                        libraryManager,
-                        exportProvider,
-                        target,
-                        dependenciesOnly: true));
-
                     // Resolve the project export
                     IMetadataProjectReference projectReference = projectReferenceProvider.GetProjectReference(
                         project,
                         target,
-                        () => projectExport.Value);
+                        new ProjectDependencyProvider(cache,));
 
                     metadataReferences.Add(projectReference);
 
