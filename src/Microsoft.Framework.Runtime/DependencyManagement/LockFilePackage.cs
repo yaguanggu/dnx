@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.Framework.Runtime.DependencyManagement
 {
-    public class LockFilePackage : LocalPackage
+    /*public class LockFilePackage : LocalPackage
     {
         private string _nuspecPath;
         private LockFileLibrary _lockFileLibrary;
@@ -76,5 +76,5 @@ namespace Microsoft.Framework.Runtime.DependencyManagement
         {
             return _lockFileLibrary.Files;
         }
-    }
+    }*/
 }

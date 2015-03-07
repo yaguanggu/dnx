@@ -388,10 +388,10 @@ namespace Microsoft.Framework.PackageManager.Bundle
                         lockFileLib.Name = package.Id;
                         lockFileLib.Version = package.Version;
                         lockFileLib.Sha = Convert.ToBase64String(sha512.ComputeHash(nupkgStream));
-                        lockFileLib.DependencySets = package.DependencySets.ToList();
-                        lockFileLib.FrameworkAssemblies = package.FrameworkAssemblies.ToList();
-                        lockFileLib.PackageAssemblyReferences = package.PackageAssemblyReferences.ToList();
-                        lockFileLib.Files = package.GetFiles().ToList();
+                        //lockFileLib.DependencySets = package.DependencySets.ToList();
+                        //lockFileLib.FrameworkAssemblies = package.FrameworkAssemblies.ToList();
+                        //lockFileLib.PackageAssemblyReferences = package.PackageAssemblyReferences.ToList();
+                        //lockFileLib.Files = package.GetFiles().ToList();
 
                         lockFile.Libraries.Add(lockFileLib);
                     }

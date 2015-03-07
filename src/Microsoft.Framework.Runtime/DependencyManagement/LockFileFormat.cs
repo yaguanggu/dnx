@@ -96,10 +96,12 @@ namespace Microsoft.Framework.Runtime.DependencyManagement
                 library.Version = SemanticVersion.Parse(parts[1]);
             }
             library.Sha = ReadString(json["sha"]);
-            library.DependencySets = ReadObject(json["dependencySets"] as JObject, ReadPackageDependencySet);
-            library.FrameworkAssemblies = ReadFrameworkAssemblies(json["frameworkAssemblies"] as JObject);
-            library.PackageAssemblyReferences = ReadArray(json["packageAssemblyReferences"] as JArray, ReadPackageReferenceSet);
-            library.Files = ReadObject(json["contents"] as JObject, ReadPackageFile);
+            library.FrameworkGroups = ReadObject(json["frameworks"] as JObject, ReadFrameworkGroup);
+            library.Files = ReadArray(json["files"] as JArray, ReadString);
+            //library.DependencySets = ReadObject(json["dependencySets"] as JObject, ReadPackageDependencySet);
+            //library.FrameworkAssemblies = ReadFrameworkAssemblies(json["frameworkAssemblies"] as JObject);
+            //library.PackageAssemblyReferences = ReadArray(json["packageAssemblyReferences"] as JArray, ReadPackageReferenceSet);
+            //library.Files = ReadObject(json["contents"] as JObject, ReadPackageFile);
             return library;
         }
 
@@ -107,13 +109,39 @@ namespace Microsoft.Framework.Runtime.DependencyManagement
         {
             var json = new JObject();
             json["sha"] = WriteString(library.Sha);
-            WriteObject(json, "dependencySets", library.DependencySets, WritePackageDependencySet);
-            WriteFrameworkAssemblies(json, "frameworkAssemblies", library.FrameworkAssemblies);
-            WriteArray(json, "packageAssemblyReferences", library.PackageAssemblyReferences, WritePackageReferenceSet);
-            json["contents"] = WriteObject(library.Files, WritePackageFile);
+            WriteObject(json, "frameworks", library.FrameworkGroups, WriteFrameworkGroup);
+            WriteArray(json, "files", library.Files, WriteString);
+            // WriteObject(json, "dependencySets", library.DependencySets, WritePackageDependencySet);
+            //WriteFrameworkAssemblies(json, "frameworkAssemblies", library.FrameworkAssemblies);
+            //WriteArray(json, "packageAssemblyReferences", library.PackageAssemblyReferences, WritePackageReferenceSet);
+            // json["contents"] = WriteObject(library.Files, WritePackageFile);
             return new JProperty(
                 library.Name + "/" + library.Version.ToString(),
                 json);
+        }
+
+        private LockFileFrameworkGroup ReadFrameworkGroup(string property, JToken json)
+        {
+            var group = new LockFileFrameworkGroup();
+
+            group.TargetFramework = new FrameworkName(property);
+            group.Dependencies = ReadObject(json["dependencies"] as JObject, ReadPackageDependency);
+            group.FrameworkAssemblies = ReadArray(json["frameworkAssemblies"] as JArray, ReadFrameworkAssemblyReference2);
+            group.RuntimeAssemblies = ReadArray(json["runtimeAssemblies"] as JArray, ReadString);
+            group.CompileTimeAssemblies = ReadArray(json["compileAssemblies"] as JArray, ReadString);
+
+            return group;
+        }
+
+        private JProperty WriteFrameworkGroup(LockFileFrameworkGroup group)
+        {
+            var json = new JObject();
+            json["dependencies"] = WriteObject(group.Dependencies, WritePackageDependency);
+            json["frameworkAssemblies"] = WriteArray(group.FrameworkAssemblies, WriteFrameworkAssemblyReference2);
+            json["runtimeAssemblies"] = WriteArray(group.RuntimeAssemblies, WriteString);
+            json["compileAssemblies"] = WriteArray(group.CompileTimeAssemblies, WriteString);
+
+            return new JProperty(group.TargetFramework.FullName, json);
         }
 
         private ProjectFileDependencyGroup ReadProjectFileDependencyGroup(string property, JToken json)
@@ -221,6 +249,16 @@ namespace Microsoft.Framework.Runtime.DependencyManagement
                     .ToList();
             }
             return new[] { new FrameworkAssemblyReference(property) };
+        }
+
+        private FrameworkAssemblyReference ReadFrameworkAssemblyReference2(JToken json)
+        {
+            return new FrameworkAssemblyReference(json.Value<string>());
+        }
+
+        private JToken WriteFrameworkAssemblyReference2(FrameworkAssemblyReference item)
+        {
+            return JToken.FromObject(item.AssemblyName);
         }
 
         private JProperty WriteFrameworkAssemblyReference(IGrouping<string, FrameworkAssemblyReference> item)
