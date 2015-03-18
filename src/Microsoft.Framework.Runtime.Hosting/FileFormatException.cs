@@ -20,9 +20,9 @@ namespace Microsoft.Framework.Runtime
 
         }
 
-        public string Path { get; private set; }
-        public int Line { get; private set; }
-        public int Column { get; private set; }
+        public string Path { get; set; }
+        public int Line { get; set; }
+        public int Column { get; set; }
 
         private FileFormatException WithLineInfo(IJsonLineInfo lineInfo)
         {

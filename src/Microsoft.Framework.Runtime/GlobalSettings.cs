@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Framework.Runtime
 {
@@ -36,29 +36,149 @@ namespace Microsoft.Framework.Runtime
             }
 
             globalSettings = new GlobalSettings();
-
-            string json = File.ReadAllText(globalJsonPath);
-            JObject settings = null;
-
-            try
-            {
-                settings = JObject.Parse(json);
-            }
-            catch (JsonReaderException ex)
-            {
-                throw FileFormatException.Create(ex, globalJsonPath);
-            }
-
-            // TODO: Remove sources
-            var projectSearchPaths = settings["projects"] ?? settings["sources"];
-
-            globalSettings.ProjectSearchPaths = projectSearchPaths == null ?
-                new string[] { } :
-                projectSearchPaths.ValueAsArray<string>();
-            globalSettings.PackagesPath = settings.Value<string>("packages");
+            globalSettings.ProjectSearchPaths = new List<string>();
             globalSettings.FilePath = globalJsonPath;
 
+            // Global.json is tiny
+            var json = File.ReadAllText(globalJsonPath);
+            var reader = new JsonTextReader(new StringReader(json));
+            
+            ReadObject(reader, globalSettings);
+
             return true;
+        }
+
+        private static void ReadList(string propertyName, JsonTextReader reader, GlobalSettings globalSettings)
+        {
+            while (reader.Read())
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonToken.Comment:
+                        break;
+                    case JsonToken.String:
+                        if (string.Equals(propertyName, "sources") ||
+                            string.Equals(propertyName, "projects"))
+                        {
+                            globalSettings.ProjectSearchPaths.Add(reader.Value.ToString());
+                        }
+                        break;
+                    default:
+                        if (string.Equals(propertyName, "sources") ||
+                            string.Equals(propertyName, "projects"))
+                        {
+                            throw new FileFormatException(string.Format("'{0}' only supports string values.", propertyName))
+                            {
+                                Path = globalSettings.FilePath,
+                                Line = reader.LineNumber,
+                                Column = reader.LinePosition
+                            };
+                        }
+                        else
+                        {
+                            ReadValue(reader, globalSettings);
+                        }
+                        break;
+                    case JsonToken.EndArray:
+                        return;
+                }
+            }
+
+            throw new FileFormatException(string.Format("Unexpected end when reading '{0}'", propertyName))
+            {
+                Path = globalSettings.FilePath,
+                Line = reader.LineNumber,
+                Column = reader.LinePosition
+            };
+        }
+
+        private static void ReadObject(JsonTextReader reader, GlobalSettings globalSettings)
+        {
+            while (reader.Read())
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonToken.PropertyName:
+                        string propertyName = reader.Value.ToString();
+
+                        if (!reader.Read())
+                        {
+                            throw new FileFormatException(string.Format("Unexpected end when reading '{0}'", propertyName))
+                            {
+                                Path = globalSettings.FilePath,
+                                Line = reader.LineNumber,
+                                Column = reader.LinePosition
+                            };
+                        }
+
+                        if (string.Equals(propertyName, "packages"))
+                        {
+                            if (reader.TokenType != JsonToken.String)
+                            {
+                                throw new FileFormatException(string.Format("'{0}' only supports string values.", propertyName))
+                                {
+                                    Path = globalSettings.FilePath,
+                                    Line = reader.LineNumber,
+                                    Column = reader.LinePosition
+                                };
+                            }
+
+                            globalSettings.PackagesPath = reader.Value.ToString();
+                        }
+                        else if (string.Equals(propertyName, "sources") ||
+                                 string.Equals(propertyName, "projects"))
+                        {
+                            ReadList(propertyName, reader, globalSettings);
+                        }
+                        else
+                        {
+                            ReadValue(reader, globalSettings);
+                        }
+
+                        break;
+                    case JsonToken.Comment:
+                        break;
+                    case JsonToken.EndObject:
+                        return;
+                }
+            }
+
+            throw new FileFormatException(string.Format("Unexpected end when reading 'global.json'"))
+            {
+                Path = globalSettings.FilePath,
+                Line = reader.LineNumber,
+                Column = reader.LinePosition
+            };
+        }
+
+        private static void ReadValue(JsonTextReader reader, GlobalSettings globalSettings)
+        {
+            while (reader.TokenType == JsonToken.Comment)
+            {
+                if (!reader.Read())
+                {
+                    throw new FileFormatException(string.Format("Unexpected end when reading 'global.json'"))
+                    {
+                        Path = globalSettings.FilePath,
+                        Line = reader.LineNumber,
+                        Column = reader.LinePosition
+                    };
+                }
+
+            }
+
+            switch (reader.TokenType)
+            {
+                case JsonToken.StartObject:
+                    ReadObject(reader, globalSettings);
+                    break;
+                case JsonToken.StartArray:
+                    ReadList(propertyName: null, reader: reader, globalSettings: globalSettings);
+                    break;
+                default:
+                    break;
+            }
+
         }
 
         public static bool HasGlobalFile(string path)
