@@ -22,7 +22,6 @@ namespace Microsoft.Framework.PackageManager
         {
             _hostServices = hostServices;
             _buildOptions = buildOptions;
-            _buildOptions.ProjectDir = Normalize(buildOptions.ProjectDir);
 
             _applicationEnvironment = (IApplicationEnvironment)hostServices.GetService(typeof(IApplicationEnvironment));
 
@@ -33,17 +32,44 @@ namespace Microsoft.Framework.PackageManager
 
         public bool Build()
         {
-            var projectDiagnostics = new List<FileFormatWarning>();
-            Runtime.Project project;
-            if (!Runtime.Project.TryGetProject(_buildOptions.ProjectDir, out project, projectDiagnostics))
+            // Initialize build-global services like the cache
+            var cacheContextAccessor = new CacheContextAccessor();
+            var cache = new Cache(cacheContextAccessor);
+
+            bool success = true;
+            foreach(var projectDir in _buildOptions.ProjectDirs)
             {
-                LogError(string.Format("Unable to locate {0}.", Runtime.Project.ProjectFileName));
-                return false;
+                var projectDiagnostics = new List<FileFormatWarning>();
+                Runtime.Project project;
+                if (!Runtime.Project.TryGetProject(projectDir, out project, projectDiagnostics))
+                {
+                    LogError(string.Format("Unable to locate {0}.", Runtime.Project.ProjectFileName));
+                    return false;
+                }
+
+                var outputDir = _buildOptions.OutputDir;
+                if(string.IsNullOrEmpty(outputDir))
+                {
+                    // Generate the output dir
+                    outputDir = Path.Combine(projectDir, "bin");
+                }
+                else if(_buildOptions.ProjectDirs.Count > 1)
+                {
+                    // We need to make a project-specific subdirectory in this outputdir
+                    outputDir = Path.Combine(outputDir, project.Name);
+                }
+
+                // Build the project!
+                success &= BuildProjectDir(project, outputDir, projectDiagnostics, cache, cacheContextAccessor);
             }
 
+            return success;
+        }
+
+        private bool BuildProjectDir(Runtime.Project project, string outputDir, List<FileFormatWarning> projectDiagnostics, ICache cache, ICacheContextAccessor cacheContextAccessor)
+        {
             var sw = Stopwatch.StartNew();
 
-            var baseOutputPath = GetBuildOutputDir(_buildOptions);
             var configurations = _buildOptions.Configurations.DefaultIfEmpty("Debug");
 
             string frameworkSelectionError;
@@ -59,13 +85,13 @@ namespace Microsoft.Framework.PackageManager
             }
 
             if (_buildOptions.GeneratePackages &&
-                !ScriptExecutor.Execute(project, "prepack", GetScriptVariable))
+                !ScriptExecutor.Execute(project, "prepack", GetScriptVariable(outputDir)))
             {
                 LogError(ScriptExecutor.ErrorMessage);
                 return false;
             }
 
-            if (!ScriptExecutor.Execute(project, "prebuild", GetScriptVariable))
+            if (!ScriptExecutor.Execute(project, "prebuild", GetScriptVariable(outputDir)))
             {
                 LogError(ScriptExecutor.ErrorMessage);
                 return false;
@@ -74,8 +100,6 @@ namespace Microsoft.Framework.PackageManager
             var success = true;
 
             var allDiagnostics = new List<ICompilationMessage>();
-            var cacheContextAccessor = new CacheContextAccessor();
-            var cache = new Cache(cacheContextAccessor);
 
             PackageBuilder packageBuilder = null;
             PackageBuilder symbolPackageBuilder = null;
@@ -97,7 +121,7 @@ namespace Microsoft.Framework.PackageManager
 
                 var configurationSuccess = true;
 
-                baseOutputPath = Path.Combine(baseOutputPath, configuration);
+                outputDir = Path.Combine(outputDir, configuration);
 
                 // Build all target frameworks a project supports
                 foreach (var targetFramework in frameworks)
@@ -115,7 +139,7 @@ namespace Microsoft.Framework.PackageManager
                                                    project,
                                                    targetFramework,
                                                    configuration,
-                                                   baseOutputPath);
+                                                   outputDir);
 
                     context.Initialize(_buildOptions.Reports.Quiet);
 
@@ -144,13 +168,13 @@ namespace Microsoft.Framework.PackageManager
                 if (_buildOptions.GeneratePackages)
                 {
                     // Create a package per configuration
-                    string nupkg = GetPackagePath(project, baseOutputPath);
-                    string symbolsNupkg = GetPackagePath(project, baseOutputPath, symbols: true);
+                    string nupkg = GetPackagePath(project, outputDir);
+                    string symbolsNupkg = GetPackagePath(project, outputDir, symbols: true);
 
                     if (configurationSuccess)
                     {
                         // Generates the application package only if this is an application packages
-                        configurationSuccess = installBuilder.Build(baseOutputPath);
+                        configurationSuccess = installBuilder.Build(outputDir);
                         success = success && configurationSuccess;
                     }
 
@@ -193,14 +217,14 @@ namespace Microsoft.Framework.PackageManager
                 }
             }
 
-            if (!ScriptExecutor.Execute(project, "postbuild", GetScriptVariable))
+            if (!ScriptExecutor.Execute(project, "postbuild", GetScriptVariable(outputDir)))
             {
                 LogError(ScriptExecutor.ErrorMessage);
                 return false;
             }
 
             if (_buildOptions.GeneratePackages &&
-                !ScriptExecutor.Execute(project, "postpack", GetScriptVariable))
+                !ScriptExecutor.Execute(project, "postpack", GetScriptVariable(outputDir)))
             {
                 LogError(ScriptExecutor.ErrorMessage);
                 return false;
@@ -223,14 +247,17 @@ namespace Microsoft.Framework.PackageManager
             return success;
         }
 
-        private string GetScriptVariable(string key)
+        private Func<string, string> GetScriptVariable(string outputDir)
         {
-            if (string.Equals("project:BuildOutputDir", key, StringComparison.OrdinalIgnoreCase))
+            return key =>
             {
-                return GetBuildOutputDir(_buildOptions);
-            }
+                if (string.Equals("project:BuildOutputDir", key, StringComparison.OrdinalIgnoreCase))
+                {
+                    return outputDir;
+                }
 
-            return null;
+                return null;
+            };
         }
 
         private static void InitializeBuilder(Runtime.Project project, PackageBuilder builder)
@@ -340,11 +367,6 @@ namespace Microsoft.Framework.PackageManager
         {
             string fileName = project.Name + "." + project.Version + (symbols ? ".symbols" : "") + ".nupkg";
             return Path.Combine(outputPath, fileName);
-        }
-
-        private static string GetBuildOutputDir(BuildOptions buildOptions)
-        {
-            return buildOptions.OutputDir ?? Path.Combine(buildOptions.ProjectDir, "bin");
         }
     }
 }

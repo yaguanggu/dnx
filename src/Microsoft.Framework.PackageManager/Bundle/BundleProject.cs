@@ -109,7 +109,7 @@ namespace Microsoft.Framework.PackageManager.Bundle
 
             // Generate nupkg from this project dependency
             var buildOptions = new BuildOptions();
-            buildOptions.ProjectDir = project.ProjectDirectory;
+            buildOptions.ProjectDirs.Add(project.ProjectDirectory);
             buildOptions.OutputDir = Path.Combine(project.ProjectDirectory, "bin");
             buildOptions.Configurations.Add(root.Configuration);
             buildOptions.Reports = root.Reports;

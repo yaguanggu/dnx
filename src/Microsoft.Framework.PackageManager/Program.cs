@@ -197,18 +197,18 @@ namespace Microsoft.Framework.PackageManager
                 var optionDependencies = c.Option("--dependencies", "Copy dependencies", CommandOptionType.NoValue);
                 var optionQuiet = c.Option("--quiet", "Do not show output such as source/destination of nupkgs",
                     CommandOptionType.NoValue);
-                var argProjectDir = c.Argument("[project]", "Project to pack, default is current directory");
                 c.HelpOption("-?|-h|--help");
 
                 c.OnExecute(() =>
                 {
                     var buildOptions = new BuildOptions();
                     buildOptions.OutputDir = optionOut.Value();
-                    buildOptions.ProjectDir = argProjectDir.Value ?? Directory.GetCurrentDirectory();
                     buildOptions.Configurations = optionConfiguration.Values;
                     buildOptions.TargetFrameworks = optionFramework.Values;
                     buildOptions.GeneratePackages = true;
                     buildOptions.Reports = CreateReports(optionVerbose.HasValue(), optionQuiet.HasValue());
+
+                    FillProjectDirectories(c, buildOptions);
 
                     var projectManager = new BuildManager(_hostServices, buildOptions);
 
@@ -219,7 +219,7 @@ namespace Microsoft.Framework.PackageManager
 
                     return 0;
                 });
-            });
+            }, throwOnUnexpectedArg: false);
 
             app.Command("build", c =>
             {
@@ -230,18 +230,18 @@ namespace Microsoft.Framework.PackageManager
                 var optionOut = c.Option("--out <OUTPUT_DIR>", "Output directory", CommandOptionType.SingleValue);
                 var optionQuiet = c.Option("--quiet", "Do not show output such as dependencies in use",
                     CommandOptionType.NoValue);
-                var argProjectDir = c.Argument("[project]", "Project to build, default is current directory");
                 c.HelpOption("-?|-h|--help");
 
                 c.OnExecute(() =>
                 {
                     var buildOptions = new BuildOptions();
                     buildOptions.OutputDir = optionOut.Value();
-                    buildOptions.ProjectDir = argProjectDir.Value ?? Directory.GetCurrentDirectory();
                     buildOptions.Configurations = optionConfiguration.Values;
                     buildOptions.TargetFrameworks = optionFramework.Values;
                     buildOptions.GeneratePackages = false;
                     buildOptions.Reports = CreateReports(optionVerbose.HasValue(), optionQuiet.HasValue());
+
+                    FillProjectDirectories(c, buildOptions);
 
                     var projectManager = new BuildManager(_hostServices, buildOptions);
 
@@ -252,7 +252,7 @@ namespace Microsoft.Framework.PackageManager
 
                     return 0;
                 });
-            });
+            }, throwOnUnexpectedArg: false);
 
             app.Command("add", c =>
             {
@@ -591,6 +591,19 @@ namespace Microsoft.Framework.PackageManager
             });
 
             return app.Execute(args);
+        }
+
+        private static void FillProjectDirectories(CommandLineApplication app, BuildOptions buildOptions)
+        {
+            foreach (var project in app.RemainingArguments)
+            {
+                buildOptions.ProjectDirs.Add(project);
+            }
+
+            if (buildOptions.ProjectDirs.Count == 0)
+            {
+                buildOptions.ProjectDirs.Add(Directory.GetCurrentDirectory());
+            }
         }
 
         private Reports CreateReports(bool verbose, bool quiet)
