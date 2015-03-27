@@ -21,7 +21,7 @@ namespace Microsoft.Framework.Runtime.Compilation
 
         public override string ToString()
         {
-            return Name;
+            return "Metadata: " + Path;
         }
     }
 }

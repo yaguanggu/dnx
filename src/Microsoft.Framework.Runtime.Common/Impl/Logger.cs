@@ -11,7 +11,7 @@ namespace Microsoft.Framework.Runtime
         {
             if (IsEnabled)
             {
-                Console.WriteLine("Error: " + message, args);
+                Console.WriteLine($"error   : {string.Format(message, args)}");
             }
         }
 
@@ -19,7 +19,7 @@ namespace Microsoft.Framework.Runtime
         {
             if (IsEnabled)
             {
-                Console.WriteLine("Information: " + message, args);
+                Console.WriteLine($"info    : {string.Format(message, args)}");
             }
         }
 
@@ -27,7 +27,7 @@ namespace Microsoft.Framework.Runtime
         {
             if (IsEnabled)
             {
-                Console.WriteLine("Warning: " + message, args);
+                Console.WriteLine($"warning : {string.Format(message, args)}");
             }
         }
 

@@ -6,9 +6,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Framework.Logging;
+using Microsoft.Framework.Runtime.Caching;
+using Microsoft.Framework.Runtime.Compilation;
 using Microsoft.Framework.Runtime.Dependencies;
 using Microsoft.Framework.Runtime.Internal;
 using Microsoft.Framework.Runtime.Loader;
+using Microsoft.Framework.Runtime.ProjectModel;
 using NuGet.DependencyResolver;
 using NuGet.Frameworks;
 using NuGet.ProjectModel;
@@ -25,6 +28,10 @@ namespace Microsoft.Framework.Runtime
         public GlobalSettings GlobalSettings { get; set; }
         public IServiceProvider Services { get; set; }
         public PackagePathResolver PackagePathResolver { get; set; }
+        public ICache Cache { get; set; }
+        public ICacheContextAccessor CacheContextAccessor { get; set; }
+        public INamedCacheDependencyProvider NamedCacheDependencyProvider { get; set; }
+        public IFileWatcher FileWatcher { get; set; }
 
         /// <summary>
         /// Create a <see cref="RuntimeHostBuilder"/> for the project in the specified
@@ -56,7 +63,7 @@ namespace Microsoft.Framework.Runtime
             if (projectResolver.TryResolvePackageSpec(GetProjectName(projectDirectory), out packageSpec))
             {
                 log.LogVerbose($"Loaded project {packageSpec.Name}");
-                hostBuilder.Project = new Project(packageSpec);
+                hostBuilder.Project = Project.FromPackageSpec(packageSpec);
             }
             hostBuilder.GlobalSettings = projectResolver.GlobalSettings;
 
@@ -72,7 +79,7 @@ namespace Microsoft.Framework.Runtime
             hostBuilder.TargetFramework = runtimeFramework;
             hostBuilder.Services = services;
             hostBuilder.PackagePathResolver = new PackagePathResolver(
-                ResolveRepositoryPath(hostBuilder.GlobalSettings), 
+                ResolveRepositoryPath(hostBuilder.GlobalSettings),
                 GetCachePaths());
 
             log.LogVerbose("Registering PackageSpecReferenceDependencyProvider");

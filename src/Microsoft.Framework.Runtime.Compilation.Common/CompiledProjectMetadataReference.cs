@@ -31,6 +31,11 @@ namespace Microsoft.Framework.Runtime.Compilation
 
         public string Path { get; private set; }
 
+        public override string ToString()
+        {
+            return "Project Output: " + Path;
+        }
+
         public IDiagnosticResult GetDiagnostics()
         {
             return DiagnosticResult.Successful;

@@ -14,5 +14,10 @@ namespace Microsoft.Framework.Runtime.Compilation
         public string Name { get; private set; }
 
         public byte[] Contents { get; private set; }
+
+        public override string ToString()
+        {
+            return "Embedded: " + Name;
+        }
     }
 }

@@ -15,5 +15,10 @@ namespace Microsoft.Framework.Runtime.Compilation
         public string Name { get; private set; }
 
         public string Path { get; private set; }
+
+        public override string ToString()
+        {
+            return "Source: " + Path;
+        }
     }
 }

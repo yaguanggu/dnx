@@ -46,6 +46,15 @@ namespace dnx.host
                     // Skip these exception messages as they are
                     // generic
                 }
+                else if(ex is ReflectionTypeLoadException)
+                {
+                    // Unpack loader exceptions
+                    Console.Error.WriteLine(ex);
+                    foreach (var loaderEx in ((ReflectionTypeLoadException)ex).LoaderExceptions)
+                    {
+                        Console.Error.WriteLine(loaderEx);
+                    }
+                }
                 else
                 {
                     Console.Error.WriteLine(ex);

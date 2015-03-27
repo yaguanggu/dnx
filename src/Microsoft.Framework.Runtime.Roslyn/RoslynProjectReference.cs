@@ -66,6 +66,11 @@ namespace Microsoft.Framework.Runtime.Roslyn
                                      .ToList();
         }
 
+        public override string ToString()
+        {
+            return "Project: " + ProjectPath;
+        }
+
         public Assembly Load(IAssemblyLoadContext loadContext)
         {
             using (var pdbStream = new MemoryStream())

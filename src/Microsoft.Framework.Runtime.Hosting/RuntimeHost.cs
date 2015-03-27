@@ -9,11 +9,14 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Framework.Logging;
+using Microsoft.Framework.Runtime.Caching;
 using Microsoft.Framework.Runtime.Common;
 using Microsoft.Framework.Runtime.Common.DependencyInjection;
+using Microsoft.Framework.Runtime.Compilation;
 using Microsoft.Framework.Runtime.Dependencies;
 using Microsoft.Framework.Runtime.Internal;
 using Microsoft.Framework.Runtime.Loader;
+using Microsoft.Framework.Runtime.ProjectModel;
 using NuGet.DependencyResolver;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
@@ -50,8 +53,6 @@ namespace Microsoft.Framework.Runtime
             GlobalSettings = builder.GlobalSettings;
             _loaderFactories = builder.Loaders;
 
-            Services = builder.Services;
-
             // Load properties from the mutable RuntimeHostBuilder into
             // immutable copies on this object
             TargetFramework = builder.TargetFramework;
@@ -59,6 +60,7 @@ namespace Microsoft.Framework.Runtime
             // Copy the dependency providers so the user can't fiddle with them without our knowledge
             var list = new List<IDependencyProvider>(builder.DependencyProviders);
             DependencyProviders = list;
+
         }
 
         public Task<int> ExecuteApplication(

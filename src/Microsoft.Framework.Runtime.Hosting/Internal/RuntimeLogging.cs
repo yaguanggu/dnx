@@ -32,7 +32,11 @@ namespace Microsoft.Framework.Runtime.Internal
             else
             {
                 ParseTrace(traceConfigurationString);
+
+                // Set the trace value back to the legacy value so the legacy logging gets printed too
+                Environment.SetEnvironmentVariable(EnvironmentNames.Trace, "1");
             }
+
             _loggerFactory = loggerFactoryFactory();
         }
 

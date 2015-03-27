@@ -367,7 +367,11 @@ namespace Microsoft.Framework.Runtime.Roslyn
 
             foreach (var d in dirs)
             {
-                ctx.Monitor(new FileWriteTimeCacheDependency(d));
+                if (ctx != null)
+                {
+                    // Set up the parent cache item to be invalidated when the file changes.
+                    ctx.Monitor(new FileWriteTimeCacheDependency(d));
+                }
 
                 // TODO: Make the file watcher hand out cache dependencies as well
                 _watcher.WatchDirectory(d, ".cs");

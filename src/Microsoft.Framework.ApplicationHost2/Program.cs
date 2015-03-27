@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.Framework.ApplicationHost.Impl.Syntax;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.Runtime;
+using Microsoft.Framework.Runtime.Caching;
 using Microsoft.Framework.Runtime.Common.CommandLine;
+using Microsoft.Framework.Runtime.Common.DependencyInjection;
 using Microsoft.Framework.Runtime.Compilation;
 using Microsoft.Framework.Runtime.Internal;
 using Microsoft.Framework.Runtime.Loader;
@@ -59,15 +61,29 @@ namespace Microsoft.Framework.ApplicationHost
 
                 log.LogInformation("Application Host Starting");
 
+                // Set up runtime services
+                // REVIEW: This is gross, we don't want a big giant service provider :(.
+                // REVIEW: Should we just make these all official parts of the interfaces that need them?
+                var services = new ServiceProvider(_serviceProvider);
+                var cacheContextAccessor = new CacheContextAccessor();
+                var cache = new Cache(cacheContextAccessor);
+                services.Add(typeof(ICacheContextAccessor), cacheContextAccessor);
+                services.Add(typeof(ICache), cache);
+                services.Add(typeof(INamedCacheDependencyProvider), new NamedCacheDependencyProvider());
+                services.Add(typeof(IFileWatcher), NoopWatcher.Instance);
+
                 // Construct the necessary context for hosting the application
                 var builder = RuntimeHostBuilder.ForProjectDirectory(
                     options.ApplicationBaseDirectory,
                     NuGetFramework.Parse(_environment.RuntimeFramework.FullName),
-                    _serviceProvider);
+                    services);
+
 
                 // Configure assembly loading
                 builder.Loaders.Add(new ProjectAssemblyLoaderFactory(
                     new LibraryExporter(
+                        services,
+                        _loadContextAccessor,
                         builder.TargetFramework,
                         builder.PackagePathResolver)));
                 builder.Loaders.Add(new PackageAssemblyLoaderFactory(builder.PackagePathResolver));
@@ -83,7 +99,7 @@ namespace Microsoft.Framework.ApplicationHost
                 var host = builder.Build();
 
                 // Get the project and print some information from it
-                log.LogInformation($"Project: {host.Project.Name} ({host.Project.BaseDirectory})");
+                log.LogInformation($"Project: {host.Project.Name} ({host.Project.ProjectDirectory})");
 
                 // Determine the command to be executed
                 var command = string.IsNullOrEmpty(options.ApplicationName) ? "run" : options.ApplicationName;
@@ -236,6 +252,11 @@ namespace Microsoft.Framework.ApplicationHost
             else
             {
                 outArgs = remainingArgs.ToArray();
+            }
+
+            if(options.WatchFiles)
+            {
+                Console.Error.WriteLine("Warning: --watch is not yet implemented!");
             }
 
             return false;
