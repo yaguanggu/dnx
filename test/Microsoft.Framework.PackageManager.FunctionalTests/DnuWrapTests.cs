@@ -75,20 +75,27 @@ namespace Microsoft.Framework.PackageManager
                 var libBetaJsonPath = Path.Combine(testSolutionDir, "src", "LibraryBeta", "project.json");
                 var globalJsonPath = Path.Combine(testSolutionDir, "global.json");
 
+                string stdOut, stdError;
                 var betaPclExitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "wrap",
-                    arguments: string.Format("\"{0}\" --msbuild \"{1}\"", libBetaPclCsprojPath, _msbuildPath));
+                    arguments: string.Format("\"{0}\" --msbuild \"{1}\"", libBetaPclCsprojPath, _msbuildPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError);
 
                 var betaDesktopExitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "wrap",
-                    arguments: string.Format("\"{0}\" --msbuild \"{1}\"", libBetaPclDesktopCsprojPath, _msbuildPath));
+                    arguments: string.Format("\"{0}\" --msbuild \"{1}\"", libBetaPclDesktopCsprojPath, _msbuildPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError);
 
                 var betaPhoneExitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "wrap",
-                    arguments: string.Format("\"{0}\" --msbuild \"{1}\"", libBetaPclPhoneCsprojPath, _msbuildPath));
+                    arguments: string.Format("\"{0}\" --msbuild \"{1}\"", libBetaPclPhoneCsprojPath, _msbuildPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError);
 
                 Assert.Equal(0, betaPclExitCode);
                 Assert.Equal(0, betaDesktopExitCode);
@@ -166,10 +173,13 @@ namespace Microsoft.Framework.PackageManager
                 var libEpsilonJsonPath = Path.Combine(wrapFolderPath, "LibraryEpsilon", "project.json");
                 var libDeltaJsonPath = Path.Combine(wrapFolderPath, "LibraryDelta", "project.json");
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "wrap",
-                    arguments: string.Format("\"{0}\" --msbuild \"{1}\"", libGammaCsprojPath, _msbuildPath));
+                    arguments: string.Format("\"{0}\" --msbuild \"{1}\"", libGammaCsprojPath, _msbuildPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError);
 
                 Assert.Equal(0, exitCode);
                 Assert.Equal(expectedGlobalJson, File.ReadAllText(globalJsonPath));
@@ -179,7 +189,7 @@ namespace Microsoft.Framework.PackageManager
                 Assert.Equal(expectedLibDeltaProjectJson, File.ReadAllText(libDeltaJsonPath));
             }
         }
-        
+
         [Theory]
         [MemberData("RuntimeComponents")]
         public void DnuWrapInPlaceCreateCsprojWrappersInPlace(string flavor, string os, string architecture)
@@ -248,10 +258,13 @@ namespace Microsoft.Framework.PackageManager
                 var libEpsilonJsonPath = Path.Combine(testSolutionDir, "LibraryEpsilon", "project.json");
                 var libDeltaJsonPath = Path.Combine(wrapFolderPath, "LibraryDelta", "project.json");
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "wrap",
-                    arguments: string.Format("\"{0}\" --in-place --msbuild \"{1}\"", libGammaCsprojPath, _msbuildPath));
+                    arguments: string.Format("\"{0}\" --in-place --msbuild \"{1}\"", libGammaCsprojPath, _msbuildPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError);
 
                 Assert.Equal(0, exitCode);
                 Assert.Equal(expectedGlobalJson, File.ReadAllText(globalJsonPath));

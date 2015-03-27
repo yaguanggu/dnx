@@ -12,7 +12,8 @@ namespace Microsoft.Framework.PackageManager
     public static class DnuTestUtils
     {
         public static int ExecDnu(string runtimeHomePath, string subcommand, string arguments,
-            IDictionary<string, string> environment = null, string workingDir = null)
+            out string stdOut, out string stdError, IDictionary<string, string> environment = null,
+            string workingDir = null)
         {
             var runtimeRoot = Directory.EnumerateDirectories(Path.Combine(runtimeHomePath, "runtimes"), Constants.RuntimeNamePrefix + "*").First();
             string program, commandLine;
@@ -28,8 +29,7 @@ namespace Microsoft.Framework.PackageManager
                 commandLine = string.Format("/C {0} {1} {2}", dnuCmdPath, subcommand, arguments);
             }
 
-            string stdOut, stdErr;
-            var exitCode = TestUtils.Exec(program, commandLine, out stdOut, out stdErr, environment, workingDir);
+            var exitCode = TestUtils.Exec(program, commandLine, out stdOut, out stdError, environment, workingDir);
             return exitCode;
         }
     }

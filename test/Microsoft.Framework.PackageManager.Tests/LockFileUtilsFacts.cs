@@ -32,10 +32,13 @@ namespace Microsoft.Framework.PackageManager.Tests
             {
                 var buildOutpuDir = Path.Combine(tempDir, "output");
 
-                int exitCode = DnuTestUtils.ExecDnu(
+                string stdOut, stdError;
+                DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     "pack",
-                    $"{projectDir} --out {buildOutpuDir} --configuration {configuration}");
+                    $"{projectDir} --out {buildOutpuDir} --configuration {configuration}",
+                    out stdOut,
+                    out stdError);
 
                 Assert.Equal(0, exitCode);
 

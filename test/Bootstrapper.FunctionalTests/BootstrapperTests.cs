@@ -156,19 +156,22 @@ command
                 var samplesPath = TestUtils.GetSamplesFolder();
                 var sampleAppRoot = Path.Combine(samplesPath, "HelloWorld");
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "build",
-                    arguments: string.Format("{0} --configuration=Release --out {1}", sampleAppRoot, tempDir.DirPath));
+                    arguments: string.Format("{0} --configuration=Release --out {1}", sampleAppRoot, tempDir.DirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError);
 
+                Assert.Empty(stdError);
                 Assert.Equal(0, exitCode);
 
-                string stdOut, stdErr;
                 exitCode = BootstrapperTestUtils.ExecBootstrapper(
                     runtimeHomeDir,
                     arguments: Path.Combine(tempDir, "Release", outputFolder, "HelloWorld.dll"),
                     stdOut: out stdOut,
-                    stdErr: out stdErr,
+                    stdErr: out stdError,
                     environment: new Dictionary<string, string> { { EnvironmentNames.Trace, null } });
 
                 Assert.Equal(0, exitCode);

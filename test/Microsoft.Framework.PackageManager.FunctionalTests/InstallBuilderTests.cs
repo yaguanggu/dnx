@@ -33,7 +33,7 @@ namespace Microsoft.Framework.PackageManager.FunctionalTests
 
                 Runtime.Project project;
                 Runtime.Project.TryGetProject(projectFilePath, out project);
-                
+
                 var packageManager = new MockPackageManager();
                 var infoReport = new MockReport();
 

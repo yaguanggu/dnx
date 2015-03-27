@@ -139,12 +139,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                 {
                     { EnvironmentNames.Packages, Path.Combine(testEnv.ProjectPath, "packages") }
                 };
-
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0} --wwwroot . --wwwroot-out wwwroot",
                         testEnv.PublishOutputDirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
@@ -240,11 +242,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     { EnvironmentNames.Packages, Path.Combine(testEnv.ProjectPath, "packages") }
                 };
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0} --wwwroot-out wwwroot",
                         testEnv.PublishOutputDirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
@@ -306,11 +311,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     { EnvironmentNames.Packages, Path.Combine(testEnv.ProjectPath, "packages") }
                 };
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0}",
                         testEnv.PublishOutputDirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
@@ -376,8 +384,8 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
 
             using (var testEnv = new DnuTestEnvironment(runtimeHomeDir, _projectName, _outputDirName))
             {
-                // REVIEW: Paths with \ don't work on *nix so we put both in here for now
-                // We need a good strategy to test \\ and / on windows and / on *nix and osx
+                //REVIEW: Paths with \ don't work on *nix so we put both in here for now
+                // We need a good strategy to test \\ and / on windows and / on * nix and osx
                 DirTree.CreateFromJson(projectStructure)
                     .WithFileContents("project.json", @"{
   ""publishExclude"": [
@@ -404,11 +412,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     { EnvironmentNames.Packages, Path.Combine(testEnv.ProjectPath, "packages") }
                 };
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0}",
                         testEnv.PublishOutputDirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
@@ -508,11 +519,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     { EnvironmentNames.Packages, Path.Combine(testEnv.ProjectPath, "packages") }
                 };
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0}",
                         testEnv.PublishOutputDirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
@@ -606,11 +620,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     { EnvironmentNames.Packages, Path.Combine(testEnv.ProjectPath, "packages") }
                 };
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0}",
                         testEnv.PublishOutputDirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
@@ -676,11 +693,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     { EnvironmentNames.Packages, Path.Combine(testEnv.ProjectPath, "packages") }
                 };
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0}",
                         testEnv.PublishOutputDirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
@@ -756,11 +776,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     { EnvironmentNames.Packages, Path.Combine(testEnv.ProjectPath, "packages") }
                 };
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0} --wwwroot public --wwwroot-out wwwroot",
                         testEnv.PublishOutputDirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
@@ -852,11 +875,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     { EnvironmentNames.Packages, Path.Combine(testEnv.ProjectPath, "packages") }
                 };
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0} --wwwroot public --wwwroot-out wwwroot",
                         testEnv.PublishOutputDirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
@@ -918,11 +944,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     { EnvironmentNames.Packages, Path.Combine(testEnv.ProjectPath, "packages") }
                 };
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0}",
                         testEnv.PublishOutputDirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
@@ -1014,11 +1043,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     { EnvironmentNames.Trace, "1" }
                 };
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0} --runtime {1}",
                         testEnv.PublishOutputDirPath, runtimeName),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
@@ -1148,10 +1180,13 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     File.Delete(lockFilePath);
                 }
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--no-source --out {0}", publishOutputPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: null,
                     workingDir: appPath);
 
@@ -1247,11 +1282,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                 var appPath = Path.Combine(tempDir, testApp);
                 TestUtils.CopyFolder(TestUtils.GetXreTestAppPath(testApp), appPath);
 
+                string stdOut, stdError;
                 // Generate lockfile for the HelloWorld app
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "restore",
                     arguments: string.Empty,
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: null,
                     workingDir: appPath);
 
@@ -1261,6 +1299,8 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--no-source --out {0}", publishOutputPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: null,
                     workingDir: appPath);
 
@@ -1324,11 +1364,14 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                     { EnvironmentNames.Packages, Path.Combine(testEnv.ProjectPath, "packages") }
                 };
 
+                string stdOut, stdError;
                 var exitCode = DnuTestUtils.ExecDnu(
                     runtimeHomeDir,
                     subcommand: "publish",
                     arguments: string.Format("--out {0}",
                         testEnv.PublishOutputDirPath),
+                    stdOut: out stdOut,
+                    stdError: out stdError,
                     environment: environment,
                     workingDir: testEnv.ProjectPath);
                 Assert.Equal(0, exitCode);
