@@ -34,21 +34,6 @@ Commands:
 Use ""dnu help [command]"" for more information about a command.
 ";
 
-        private static readonly string DnuCommandsText =
-            @"
-Usage: dnu commands [options] [command]
-
-Options:
-  -?|-h|--help  Show help information
-
-Commands:
-  install    Installs application commands
-  help       Show help information
-  uninstall  Uninstalls application commands
-
-Use ""commands help [command]"" for more information about a command.
-";
-
         public static IEnumerable<object[]> RuntimeComponents
         {
             get
@@ -148,7 +133,7 @@ Options:
   --parallel                  Restores in parallel when more than one project.json is discovered.
   -?|-h|--help                Show help information
 ";
-            DnuHelpHelper(flavor, os, architecture, "help restore", "", expected, 0);
+            DnuHelpHelper(flavor, os, architecture, "help", "restore", expected, 0);
         }
 
         [Theory]
@@ -162,7 +147,7 @@ Usage: dnu help [arguments]
 Arguments:
   [command]  Command that help information explains
 ";
-            DnuHelpHelper(flavor, os, architecture, "help help", "", expected, 0);
+            DnuHelpHelper(flavor, os, architecture, "help", "help", expected, 0);
         }
 
         [Theory]
@@ -187,7 +172,7 @@ Options:
   --quiet                          Do not show output such as source/destination of published files
   -?|-h|--help                     Show help information
 ";
-            DnuHelpHelper(flavor, os, architecture, "help publish", "", expected, 0);
+            DnuHelpHelper(flavor, os, architecture, "help", "publish", expected, 0);
         }
 
         [Theory]
@@ -209,7 +194,7 @@ Options:
   --quiet                          Do not show output such as source/destination of nupkgs
   -?|-h|--help                     Show help information
 ";
-            DnuHelpHelper(flavor, os, architecture, "help pack", "", expected, 0);
+            DnuHelpHelper(flavor, os, architecture, "help", "pack", expected, 0);
         }
 
         [Theory]
@@ -230,7 +215,7 @@ Options:
   --quiet                          Do not show output such as dependencies in use
   -?|-h|--help                     Show help information
 ";
-            DnuHelpHelper(flavor, os, architecture, "help build", "", expected, 0);
+            DnuHelpHelper(flavor, os, architecture, "help", "build", expected, 0);
         }
 
         [Theory]
@@ -256,7 +241,7 @@ Options:
   --quiet                     Do not show output such as HTTP request/cache information
   -?|-h|--help                Show help information
 ";
-            DnuHelpHelper(flavor, os, architecture, "help install", "", expected, 0);
+            DnuHelpHelper(flavor, os, architecture, "help", "install", expected, 0);
         }
 
         [Theory]
@@ -278,7 +263,7 @@ Commands:
 
 Use ""dnu help [command]"" for more information about a command.
 ";
-            DnuHelpHelper(flavor, os, architecture, "help packages", "", expected, 0);
+            DnuHelpHelper(flavor, os, architecture, "help", "packages", expected, 0);
         }
 
         [Theory]
@@ -300,7 +285,7 @@ Options:
   --filter <PATTERN>              Filter the libraries referenced by the project base on their names. The matching pattern supports * and ?
   -?|-h|--help                    Show help information
 ";
-            DnuHelpHelper(flavor, os, architecture, "help list", "", expected, 0);
+            DnuHelpHelper(flavor, os, architecture, "help", "list", expected, 0);
         }
 
         [Theory]
@@ -321,7 +306,7 @@ Commands:
 
 Use ""dnu help [command]"" for more information about a command.
 ";
-            DnuHelpHelper(flavor, os, architecture, "help commands", "", expected, 0);
+            DnuHelpHelper(flavor, os, architecture, "help", "commands", expected, 0);
         }
 
         [Theory]
@@ -342,7 +327,7 @@ Options:
   -f|--framework                   Target framework of assembly to be wrapped
   -?|-h|--help                     Show help information
 ";
-            DnuHelpHelper(flavor, os, architecture, "help wrap", "", expected, 0);
+            DnuHelpHelper(flavor, os, architecture, "help", "wrap", expected, 0);
         }
     }
 }

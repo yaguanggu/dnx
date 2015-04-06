@@ -29,13 +29,13 @@ Restore complete,";
             var runtimeHomeDir = TestUtils.GetRuntimeHomeDir(flavor, os, architecture);
             int exitCode;
 
-            File.WriteAllText(string.Format("{0}/project.json", runtimeHomeDir), "{}");
             using (var testEnv = new DnuTestEnvironment(runtimeHomeDir))
             {
-                exitCode = DnuTestUtils.ExecDnu(runtimeHomeDir, "restore", "", out stdOut, out stdError, environment: null, workingDir: runtimeHomeDir);
+                File.WriteAllText(string.Format("{0}/project.json", testEnv.RootDir), "{}");
+                exitCode = DnuTestUtils.ExecDnu(runtimeHomeDir, "restore", "", out stdOut, out stdError, environment: null, workingDir: testEnv.RootDir);
 
                 Assert.Empty(stdError);
-                Assert.StartsWith(string.Format(expected, runtimeHomeDir), stdOut);
+                Assert.StartsWith(string.Format(expected, testEnv.RootDir), stdOut);
                 Assert.Equal(0, exitCode);
             }
         }
@@ -65,15 +65,47 @@ Errors in {0}\project.json
             var runtimeHomeDir = TestUtils.GetRuntimeHomeDir(flavor, os, architecture);
             int exitCode;
 
-            File.WriteAllText(string.Format("{0}/project.json", runtimeHomeDir), @"{ ""dependencies"": { ""PackageName"": ""1.0.0-*""} }");
             using (var testEnv = new DnuTestEnvironment(runtimeHomeDir))
             {
-                exitCode = DnuTestUtils.ExecDnu(runtimeHomeDir, "restore", "-s http://b --ignore-failed-sources", out stdOut, out stdError, environment: null, workingDir: runtimeHomeDir);
+                File.WriteAllText(string.Format("{0}/project.json", testEnv.RootDir), @"{ ""dependencies"": { ""PackageName"": ""1.0.0-*""} }");
+                exitCode = DnuTestUtils.ExecDnu(runtimeHomeDir, "restore", "-s http://b --ignore-failed-sources", out stdOut, out stdError, environment: null, workingDir: testEnv.RootDir);
 
                 Assert.Empty(stdError);
-                Assert.StartsWith(string.Format(expected1, runtimeHomeDir), stdOut);
-                Assert.EndsWith(string.Format(expected2, runtimeHomeDir), stdOut);
+                Assert.StartsWith(string.Format(expected1, testEnv.RootDir), stdOut);
+                Assert.EndsWith(string.Format(expected2, testEnv.RootDir), stdOut);
                 Assert.Equal(1, exitCode);
+            }
+        }
+
+        [Theory]
+        [MemberData("RuntimeComponents")]
+        public void DnuRestore_Lock(string flavor, string os, string architecture)
+        {
+            string expectedLock = @"{
+  ""locked"": true,
+  ""version"": -9998,
+  ""projectFileDependencyGroups"": {
+    """": [
+      ""PackageName >= 1.0.0-*""
+    ]
+  },
+  ""libraries"": {}
+}";
+            string stdOut;
+            string stdError;
+            var runtimeHomeDir = TestUtils.GetRuntimeHomeDir(flavor, os, architecture);
+            int exitCode;
+
+            using (var testEnv = new DnuTestEnvironment(runtimeHomeDir))
+            {
+                File.WriteAllText(string.Format("{0}/project.json", testEnv.RootDir), @"{ ""dependencies"": { ""PackageName"": ""1.0.0-*""} }");
+                exitCode = DnuTestUtils.ExecDnu(runtimeHomeDir, "restore", "--lock", out stdOut, out stdError, environment: null, workingDir: testEnv.RootDir);
+
+                Assert.Empty(stdError);
+                Assert.Equal(1, exitCode);
+
+                string actual = File.ReadAllText(string.Format("{0}/project.lock.json", testEnv.RootDir));
+                Assert.Equal(expectedLock, actual);
             }
         }
 
@@ -90,14 +122,14 @@ Restore complete,";
             var runtimeHomeDir = TestUtils.GetRuntimeHomeDir(flavor, os, architecture);
             int exitCode;
 
-            File.WriteAllText(string.Format("{0}/project.json", runtimeHomeDir), @"{ ""dependencies"": { ""PackageName"": ""1.0.0-*""} }");
             using (var testEnv = new DnuTestEnvironment(runtimeHomeDir))
             {
-                DnuTestUtils.ExecDnu(runtimeHomeDir, "restore", "--lock", out stdOut, out stdError, environment: null, workingDir: runtimeHomeDir);
-                exitCode = DnuTestUtils.ExecDnu(runtimeHomeDir, "restore", "", out stdOut, out stdError, environment: null, workingDir: runtimeHomeDir);
+                File.WriteAllText(string.Format("{0}/project.json", testEnv.RootDir), @"{ ""dependencies"": { ""PackageName"": ""1.0.0-*""} }");
+                DnuTestUtils.ExecDnu(runtimeHomeDir, "restore", "--lock", out stdOut, out stdError, environment: null, workingDir: testEnv.RootDir);
+                exitCode = DnuTestUtils.ExecDnu(runtimeHomeDir, "restore", "", out stdOut, out stdError, environment: null, workingDir: testEnv.RootDir);
 
                 Assert.Empty(stdError);
-                Assert.StartsWith(string.Format(expected, runtimeHomeDir), stdOut);
+                Assert.StartsWith(string.Format(expected, testEnv.RootDir), stdOut);
                 Assert.Equal(0, exitCode);
             }
         }
