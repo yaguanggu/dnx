@@ -45,14 +45,8 @@ Restore complete,";
         public void DnuRestore_IgnoreBadSource(string flavor, string os, string architecture)
         {
             string expected1 = @"Restoring packages for {0}\project.json
-  GET http://b/FindPackagesById()?Id='PackageName'.
 Warning: FindPackagesById: PackageName
-  Response status code does not indicate success: 401 (Unauthorized).
-  GET http://b/FindPackagesById()?Id='PackageName'.
-Warning: FindPackagesById: PackageName
-  Response status code does not indicate success: 401 (Unauthorized).
-  GET http://b/FindPackagesById()?Id='PackageName'.
-Failed to retrieve information from remote source 'http://b/'
+  The local package source {1} doesn't exist
 Unable to locate PackageName >= 1.0.0-*
 Writing lock file {0}\project.lock.json
 Restore complete,";
@@ -68,10 +62,10 @@ Errors in {0}\project.json
             using (var testEnv = new DnuTestEnvironment(runtimeHomeDir))
             {
                 File.WriteAllText(string.Format("{0}/project.json", testEnv.RootDir), @"{ ""dependencies"": { ""PackageName"": ""1.0.0-*""} }");
-                exitCode = DnuTestUtils.ExecDnu(runtimeHomeDir, "restore", "-s http://b --ignore-failed-sources", out stdOut, out stdError, environment: null, workingDir: testEnv.RootDir);
+                exitCode = DnuTestUtils.ExecDnu(runtimeHomeDir, "restore", string.Format("-s {0}/NonExistantFile --ignore-failed-sources", testEnv.RootDir), out stdOut, out stdError, environment: null, workingDir: testEnv.RootDir);
 
                 Assert.Empty(stdError);
-                Assert.StartsWith(string.Format(expected1, testEnv.RootDir), stdOut);
+                Assert.StartsWith(string.Format(expected1, testEnv.RootDir, string.Format("{0}/NonExistantFile", testEnv.RootDir)), stdOut);
                 Assert.EndsWith(string.Format(expected2, testEnv.RootDir), stdOut);
                 Assert.Equal(1, exitCode);
             }
