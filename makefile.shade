@@ -314,6 +314,7 @@ var RUNTIME_TARGETS='${new List<RuntimeTarget>()}'
             Path.Combine("src", BOOTSTRAPPER_EXE_NAME, BOOTSTRAPPER_EXE_NAME + ".cpp"),
             Path.Combine("src", BOOTSTRAPPER_EXE_NAME, "pal.unix.cpp"),
             Path.Combine("src", BOOTSTRAPPER_EXE_NAME, "pal.linux.cpp"),
+            Path.Combine("src", BOOTSTRAPPER_EXE_NAME, "utils.cpp"),
             Path.Combine("src", BOOTSTRAPPER_EXE_NAME, "tchar.cpp"),
         };
 
@@ -353,6 +354,7 @@ var RUNTIME_TARGETS='${new List<RuntimeTarget>()}'
             Path.Combine("src", BOOTSTRAPPER_EXE_NAME, BOOTSTRAPPER_EXE_NAME + ".cpp"),
             Path.Combine("src", BOOTSTRAPPER_EXE_NAME, "pal.unix.cpp"),
             Path.Combine("src", BOOTSTRAPPER_EXE_NAME, "pal.darwin.cpp"),
+            Path.Combine("src", BOOTSTRAPPER_EXE_NAME, "utils.cpp"),
             Path.Combine("src", BOOTSTRAPPER_EXE_NAME, "tchar.cpp"),
         };
 

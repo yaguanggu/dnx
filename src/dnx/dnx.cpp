@@ -280,7 +280,7 @@ int CallApplicationProcessMain(int argc, dnx::char_t* argv[], TraceWriter traceW
 
     try
     {
-    dnx::char_t* hostModuleName =
+        const dnx::char_t* hostModuleName =
 #if CORECLR_WIN
         _X("dnx.coreclr.dll");
 #elif CORECLR_DARWIN
