@@ -9,6 +9,7 @@ using System.Runtime.Versioning;
 using NuGet;
 using NuGet.ContentModel;
 using Microsoft.Framework.Runtime.DependencyManagement;
+using System.Diagnostics;
 
 namespace Microsoft.Framework.PackageManager.Utils
 {
@@ -71,24 +72,10 @@ namespace Microsoft.Framework.PackageManager.Utils
                 IEnumerable<FrameworkAssemblyReference> frameworkAssemblies;
                 if (VersionUtility.TryGetCompatibleItems(framework, package.FrameworkAssemblies, out frameworkAssemblies))
                 {
-                    foreach (var assemblyReference in frameworkAssemblies)
-                    {
-                        if (!assemblyReference.SupportedFrameworks.Any() &&
-                            !VersionUtility.IsDesktop(framework))
-                        {
-                            // REVIEW: This isn't 100% correct since none *can* mean 
-                            // any in theory, but in practice it means .NET full reference assembly
-                            // If there's no supported target frameworks and we're not targeting
-                            // the desktop framework then skip it.
-
-                            // To do this properly we'll need all reference assemblies supported
-                            // by each supported target framework which isn't always available.
-                            continue;
-                        }
-
-                        lockFileLib.FrameworkAssemblies.Add(assemblyReference);
-                    }
+                    AddFrameworkReferences(lockFileLib, framework, frameworkAssemblies);
                 }
+
+                AddFrameworkReferences(lockFileLib, framework, package.FrameworkAssemblies.Where(f => !f.SupportedFrameworks.Any()));
             }
 
             var patterns = new PatternDefinitions();
@@ -158,6 +145,27 @@ namespace Microsoft.Framework.PackageManager.Utils
             //}
 
             return lockFileLib;
+        }
+
+        private static void AddFrameworkReferences(LockFileTargetLibrary lockFileLib, FrameworkName framework, IEnumerable<FrameworkAssemblyReference> frameworkAssemblies)
+        {
+            foreach (var assemblyReference in frameworkAssemblies)
+            {
+                if (!assemblyReference.SupportedFrameworks.Any() &&
+                    !VersionUtility.IsDesktop(framework))
+                {
+                    // REVIEW: This isn't 100% correct since none *can* mean 
+                    // any in theory, but in practice it means .NET full reference assembly
+                    // If there's no supported target frameworks and we're not targeting
+                    // the desktop framework then skip it.
+
+                    // To do this properly we'll need all reference assemblies supported
+                    // by each supported target framework which isn't always available.
+                    continue;
+                }
+
+                lockFileLib.FrameworkAssemblies.Add(assemblyReference);
+            }
         }
 
         public static LockFileLibrary CreateLockFileLibraryForProject(
