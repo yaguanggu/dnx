@@ -2,18 +2,23 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Framework.Runtime.Infrastructure;
 
 namespace Microsoft.Framework.Runtime
 {
     internal static class PlatformHelper
     {
-        private static Lazy<bool> _isMono = new Lazy<bool>(() => Type.GetType("Mono.Runtime") != null);
+        private static Lazy<string> _osName = new Lazy<string>(() =>
+                    ((IRuntimeEnvironment)CallContextServiceLocator
+                    .Locator
+                    .ServiceProvider
+                    .GetService(typeof(IRuntimeEnvironment))).OperatingSystem);
 
         public static bool IsMono
         {
             get
             {
-                return _isMono.Value;
+                return _osName.Value == "Darwin";
             }
         }
 
@@ -21,8 +26,7 @@ namespace Microsoft.Framework.Runtime
         {
             get
             {
-                // For now assume Windows = not Mono
-                return !IsMono;
+                return _osName.Value == "Windows";
             }
         }
     }
