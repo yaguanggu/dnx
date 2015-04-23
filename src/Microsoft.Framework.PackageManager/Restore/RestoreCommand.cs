@@ -25,37 +25,49 @@ namespace Microsoft.Framework.PackageManager
     {
         private static readonly int MaxDegreesOfConcurrency = Environment.ProcessorCount;
 
-        public RestoreCommand(IApplicationEnvironment env)
+        public RestoreCommand() :
+            this(fallbackFramework: null)
         {
-            ApplicationEnvironment = env;
+        }
+
+        public RestoreCommand(IApplicationEnvironment env) :
+            this(env.RuntimeFramework)
+        {
+        }
+
+        public RestoreCommand(FrameworkName fallbackFramework)
+        {
+            FallbackFramework = fallbackFramework;
             FileSystem = new PhysicalFileSystem(Directory.GetCurrentDirectory());
             MachineWideSettings = new CommandLineMachineWideSettings();
             ScriptExecutor = new ScriptExecutor();
             ErrorMessages = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+            Reports = new Reports
+            {
+                Information = new NullReport(),
+                Error = new NullReport(),
+                Quiet = new NullReport(),
+                Verbose = new NullReport()
+            };
         }
 
         public FeedOptions FeedOptions { get; set; }
 
         public string RestoreDirectory { get; set; }
         public string NuGetConfigFile { get; set; }
-        public IEnumerable<string> Sources { get; set; }
-        public IEnumerable<string> FallbackSources { get; set; }
-        public bool NoCache { get; set; }
         public bool Lock { get; set; }
         public bool Unlock { get; set; }
-        public string PackageFolder { get; set; }
-
-        /// <summary>
-        /// Gets or sets a flag that determines if restore is performed on multiple project.json files in parallel.
-        /// </summary>
-        public bool Parallel { get; set; }
 
         public ScriptExecutor ScriptExecutor { get; private set; }
 
-        public IApplicationEnvironment ApplicationEnvironment { get; private set; }
+        public List<FrameworkName> TargetFrameworks { get; set; } = new List<FrameworkName>();
+        public FrameworkName FallbackFramework { get; set; }
         public IMachineWideSettings MachineWideSettings { get; set; }
         public IFileSystem FileSystem { get; set; }
         public Reports Reports { get; set; }
+        public bool CheckHashFile { get; set; } = true;
+        public bool SkipInstall { get; set; }
+
         private Dictionary<string, List<string>> ErrorMessages { get; set; }
 
         protected internal ISettings Settings { get; set; }
@@ -207,7 +219,10 @@ namespace Microsoft.Framework.PackageManager
 
             var projectDirectory = project.ProjectDirectory;
             var projectResolver = new ProjectResolver(projectDirectory, rootDirectory);
-            var packageRepository = new PackageRepository(packagesDirectory);
+            var packageRepository = new PackageRepository(packagesDirectory)
+            {
+                CheckHashFile = CheckHashFile
+            };
             var restoreOperations = new RestoreOperations(Reports.Verbose);
             var projectProviders = new List<IWalkProvider>();
             var localProviders = new List<IWalkProvider>();
@@ -238,7 +253,7 @@ namespace Microsoft.Framework.PackageManager
 
                 var context = new RestoreContext
                 {
-                    FrameworkName = ApplicationEnvironment.RuntimeFramework,
+                    FrameworkName = FallbackFramework,
                     ProjectLibraryProviders = projectProviders,
                     LocalLibraryProviders = localProviders,
                     RemoteLibraryProviders = remoteProviders,
@@ -265,11 +280,13 @@ namespace Microsoft.Framework.PackageManager
             }
             else
             {
-                foreach (var configuration in project.GetTargetFrameworks())
+                var frameworks = TargetFrameworks.Count == 0 ? project.GetTargetFrameworks().Select(f => f.FrameworkName) : TargetFrameworks;
+
+                foreach (var frameworkName in frameworks)
                 {
                     var context = new RestoreContext
                     {
-                        FrameworkName = configuration.FrameworkName,
+                        FrameworkName = frameworkName,
                         ProjectLibraryProviders = projectProviders,
                         LocalLibraryProviders = localProviders,
                         RemoteLibraryProviders = remoteProviders,
@@ -281,7 +298,7 @@ namespace Microsoft.Framework.PackageManager
                 {
                     contexts.Add(new RestoreContext
                     {
-                        FrameworkName = ApplicationEnvironment.RuntimeFramework,
+                        FrameworkName = FallbackFramework,
                         ProjectLibraryProviders = projectProviders,
                         LocalLibraryProviders = localProviders,
                         RemoteLibraryProviders = remoteProviders,
@@ -422,7 +439,10 @@ namespace Microsoft.Framework.PackageManager
                 });
             }
 
-            await InstallPackages(installItems, packagesDirectory);
+            if (!SkipInstall)
+            {
+                await InstallPackages(installItems, packagesDirectory);
+            }
 
             if (!useLockFile)
             {
@@ -693,6 +713,8 @@ namespace Microsoft.Framework.PackageManager
                                    PackageRepository repository,
                                    IEnumerable<TargetContext> contexts)
         {
+            var resolver = new DefaultPackagePathResolver(repository.RepositoryRoot);
+
             var lockFile = new LockFile();
             lockFile.Islocked = Lock;
 
@@ -710,7 +732,8 @@ namespace Microsoft.Framework.PackageManager
                     }
 
                     var package = packageInfo.Package;
-                    var lockFileLib = LockFileUtils.CreateLockFileLibraryForProject2(
+                    var lockFileLib = LockFileUtils.CreateLockFileLibrary(
+                        resolver,
                         package,
                         sha512,
                         correctedPackageName: library.Name);
@@ -753,7 +776,6 @@ namespace Microsoft.Framework.PackageManager
                     var targetLibrary = LockFileUtils.CreateLockFileTargetLibrary(
                         package,
                         context.RestoreContext,
-                        new DefaultPackagePathResolver(repository.RepositoryRoot),
                         correctedPackageName: library.Name);
 
                     target.Libraries.Add(targetLibrary);
@@ -848,7 +870,7 @@ namespace Microsoft.Framework.PackageManager
 
         private bool RestoringInParallel()
         {
-            return Parallel && !PlatformHelper.IsMono;
+            return FeedOptions.Parallel && !PlatformHelper.IsMono;
         }
 
         // Based on http://blogs.msdn.com/b/pfxteam/archive/2012/03/05/10278165.aspx

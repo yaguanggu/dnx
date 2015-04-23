@@ -19,12 +19,6 @@ namespace Microsoft.Framework.Runtime.DependencyManagement
         public string Sha512 { get; set; }
 
         public IList<string> Files { get; set; } = new List<string>();
-
-        // Old stuff
-
-        public string Sha { get; set; }
-
-        public IList<LockFileFrameworkGroup> FrameworkGroups { get; set; } = new List<LockFileFrameworkGroup>();
     }
 
     public class LockFileTarget
@@ -41,22 +35,6 @@ namespace Microsoft.Framework.Runtime.DependencyManagement
         public string Name { get; set; }
 
         public SemanticVersion Version { get; set; }
-
-        public IList<PackageDependency> Dependencies { get; set; } = new List<PackageDependency>();
-
-        public IList<FrameworkAssemblyReference> FrameworkAssemblies { get; set; } = new List<FrameworkAssemblyReference>();
-
-        public IList<string> RuntimeAssemblies { get; set; } = new List<string>();
-
-        public IList<string> CompileTimeAssemblies { get; set; } = new List<string>();
-
-        public IList<string> NativeLibraries { get; set; } = new List<string>();
-    }
-
-    // Old stuff
-    public class LockFileFrameworkGroup
-    {
-        public FrameworkName TargetFramework { get; set; }
 
         public IList<PackageDependency> Dependencies { get; set; } = new List<PackageDependency>();
 

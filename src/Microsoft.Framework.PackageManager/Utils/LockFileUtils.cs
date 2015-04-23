@@ -1,21 +1,20 @@
 ﻿using System;
-using System.Security.Cryptography;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Versioning;
+using System.Security.Cryptography;
+using Microsoft.Framework.Runtime.DependencyManagement;
 using NuGet;
 using NuGet.ContentModel;
-using Microsoft.Framework.Runtime.DependencyManagement;
-using System.Diagnostics;
 
 namespace Microsoft.Framework.PackageManager.Utils
 {
     internal static class LockFileUtils
     {
-        public static LockFileLibrary CreateLockFileLibraryForProject2(IPackage package, SHA512 sha512, string correctedPackageName = null)
+        public static LockFileLibrary CreateLockFileLibrary(IPackagePathResolver resolver, IPackage package, SHA512 sha512, string correctedPackageName = null)
         {
             var lockFileLib = new LockFileLibrary();
 
@@ -32,10 +31,26 @@ namespace Microsoft.Framework.PackageManager.Utils
 
             lockFileLib.Files = package.GetFiles().Select(p => p.Path).ToList();
 
+            var installPath = resolver.GetInstallPath(package.Id, package.Version);
+            foreach (var filePath in lockFileLib.Files)
+            {
+                if (!string.Equals(Path.GetExtension(filePath), ".dll"))
+                {
+                    continue;
+                }
+
+                var assemblyPath = Path.Combine(installPath, filePath);
+                if (IsAssemblyServiceable(assemblyPath))
+                {
+                    lockFileLib.IsServiceable = true;
+                    break;
+                }
+            }
+
             return lockFileLib;
         }
 
-        public static LockFileTargetLibrary CreateLockFileTargetLibrary(IPackage package, RestoreContext context, DefaultPackagePathResolver defaultPackagePathResolver, string correctedPackageName)
+        public static LockFileTargetLibrary CreateLockFileTargetLibrary(IPackage package, RestoreContext context, string correctedPackageName)
         {
             var lockFileLib = new LockFileTargetLibrary();
 
@@ -75,6 +90,7 @@ namespace Microsoft.Framework.PackageManager.Utils
                     AddFrameworkReferences(lockFileLib, framework, frameworkAssemblies);
                 }
 
+                // Add framework assemblies with empty supported frameworks
                 AddFrameworkReferences(lockFileLib, framework, package.FrameworkAssemblies.Where(f => !f.SupportedFrameworks.Any()));
             }
 
@@ -132,18 +148,6 @@ namespace Microsoft.Framework.PackageManager.Utils
                 lockFileLib.CompileTimeAssemblies.Add(contractPath);
             }
 
-            // TODO: figure out servicable
-            //var installPath = resolver.GetInstallPath(package.Id, package.Version);
-            //foreach (var assembly in lockFileLib.FrameworkGroups.SelectMany(f => f.RuntimeAssemblies))
-            //{
-            //    var assemblyPath = Path.Combine(installPath, assembly);
-            //    if (IsAssemblyServiceable(assemblyPath))
-            //    {
-            //        lockFileLib.IsServiceable = true;
-            //        break;
-            //    }
-            //}
-
             return lockFileLib;
         }
 
@@ -166,105 +170,6 @@ namespace Microsoft.Framework.PackageManager.Utils
 
                 lockFileLib.FrameworkAssemblies.Add(assemblyReference);
             }
-        }
-
-        public static LockFileLibrary CreateLockFileLibraryForProject(
-            Runtime.Project project,
-            IPackage package,
-            SHA512 sha512,
-            IEnumerable<FrameworkName> frameworks,
-            IPackagePathResolver resolver,
-            string correctedPackageName = null)
-        {
-            var lockFileLib = new LockFileLibrary();
-
-            // package.Id is read from nuspec and it might be in wrong casing.
-            // correctedPackageName should be the package name used by dependency graph and
-            // it has the correct casing that runtime needs during dependency resolution.
-            lockFileLib.Name = correctedPackageName ?? package.Id;
-            lockFileLib.Version = package.Version;
-
-            using (var nupkgStream = package.GetStream())
-            {
-                lockFileLib.Sha512 = Convert.ToBase64String(sha512.ComputeHash(nupkgStream));
-            }
-
-            lockFileLib.Files = package.GetFiles().Select(p => p.Path).ToList();
-
-            foreach (var framework in frameworks)
-            {
-                var group = new LockFileFrameworkGroup();
-                group.TargetFramework = framework;
-
-                IEnumerable<PackageDependencySet> dependencySet;
-                if (VersionUtility.TryGetCompatibleItems(framework, package.DependencySets, out dependencySet))
-                {
-                    var set = dependencySet.FirstOrDefault()?.Dependencies?.ToList();
-
-                    if (set != null)
-                    {
-                        group.Dependencies = set;
-                    }
-                }
-
-                // TODO: Remove this when we do #596
-                // ASP.NET Core isn't compatible with generic PCL profiles
-                if (!string.Equals(framework.Identifier, VersionUtility.AspNetCoreFrameworkIdentifier, StringComparison.OrdinalIgnoreCase) &&
-                    !string.Equals(framework.Identifier, VersionUtility.DnxCoreFrameworkIdentifier, StringComparison.OrdinalIgnoreCase))
-                {
-                    IEnumerable<FrameworkAssemblyReference> frameworkAssemblies;
-                    if (VersionUtility.TryGetCompatibleItems(framework, package.FrameworkAssemblies, out frameworkAssemblies))
-                    {
-                        foreach (var assemblyReference in frameworkAssemblies)
-                        {
-                            if (!assemblyReference.SupportedFrameworks.Any() &&
-                                !VersionUtility.IsDesktop(framework))
-                            {
-                                // REVIEW: This isn't 100% correct since none *can* mean 
-                                // any in theory, but in practice it means .NET full reference assembly
-                                // If there's no supported target frameworks and we're not targeting
-                                // the desktop framework then skip it.
-
-                                // To do this properly we'll need all reference assemblies supported
-                                // by each supported target framework which isn't always available.
-                                continue;
-                            }
-
-                            group.FrameworkAssemblies.Add(assemblyReference);
-                        }
-                    }
-                }
-
-                group.RuntimeAssemblies = GetPackageAssemblies(package, framework);
-
-                string contractPath = Path.Combine("lib", "contract", package.Id + ".dll");
-                var hasContract = lockFileLib.Files.Any(path => path == contractPath);
-                var hasLib = group.RuntimeAssemblies.Any();
-
-                if (hasContract && hasLib && !VersionUtility.IsDesktop(framework))
-                {
-                    group.CompileTimeAssemblies.Add(contractPath);
-                }
-                else if (hasLib)
-                {
-                    group.CompileTimeAssemblies.AddRange(group.RuntimeAssemblies);
-                }
-
-                lockFileLib.FrameworkGroups.Add(group);
-            }
-
-            var installPath = resolver.GetInstallPath(package.Id, package.Version);
-            foreach (var assembly in lockFileLib.FrameworkGroups.SelectMany(f => f.RuntimeAssemblies))
-            {
-                var assemblyPath = Path.Combine(installPath, assembly);
-                if (IsAssemblyServiceable(assemblyPath))
-                {
-                    lockFileLib.IsServiceable = true;
-                    break;
-                }
-            }
-
-            return lockFileLib;
         }
 
         private static List<string> GetPackageAssemblies(IPackage package, FrameworkName targetFramework)
@@ -317,6 +222,11 @@ namespace Microsoft.Framework.PackageManager.Utils
             using (var stream = File.OpenRead(assemblyPath))
             using (var peReader = new PEReader(stream))
             {
+                if (!peReader.HasMetadata)
+                {
+                    return false;
+                }
+
                 var mdReader = peReader.GetMetadataReader();
                 var attrs = mdReader.GetAssemblyDefinition().GetCustomAttributes()
                     .Select(ah => mdReader.GetCustomAttribute(ah));
