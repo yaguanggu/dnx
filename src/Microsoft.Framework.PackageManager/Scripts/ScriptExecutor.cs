@@ -46,7 +46,7 @@ namespace Microsoft.Framework.PackageManager
                     continue;
                 }
 
-                if (!PlatformHelper.IsMono)
+                if (!RuntimeEnvironmentHelper.IsMono)
                 {
                     // Forward-slash is used in script blocked only. Replace them with back-slash to correctly
                     // locate the script. The directory separator is platform-specific. 

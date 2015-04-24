@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Microsoft.Framework.Runtime;
 
 namespace Microsoft.Framework.PackageManager
 {
@@ -38,12 +37,6 @@ namespace Microsoft.Framework.PackageManager
 
         public static bool MarkExecutable(string file)
         {
-            if (PlatformHelper.IsWindows)
-            {
-                // This makes sense only on non Windows machines
-                return false;
-            }
-
             var processStartInfo = new ProcessStartInfo()
             {
                 UseShellExecute = false,

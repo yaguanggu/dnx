@@ -43,6 +43,7 @@ namespace Microsoft.Framework.PackageManager
             MachineWideSettings = new CommandLineMachineWideSettings();
             ScriptExecutor = new ScriptExecutor();
             ErrorMessages = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+
             Reports = new Reports
             {
                 Information = new NullReport(),
@@ -939,7 +940,7 @@ namespace Microsoft.Framework.PackageManager
 
         private bool RestoringInParallel()
         {
-            return FeedOptions.Parallel && !PlatformHelper.IsMono;
+            return FeedOptions.Parallel && !RuntimeEnvironmentHelper.IsMono;
         }
 
         // Based on http://blogs.msdn.com/b/pfxteam/archive/2012/03/05/10278165.aspx
