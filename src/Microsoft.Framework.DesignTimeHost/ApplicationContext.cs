@@ -1033,7 +1033,7 @@ namespace Microsoft.Framework.DesignTimeHost
                     FrameworkName = frameworkName,
                     // TODO: This shouldn't be roslyn specific compilation options
                     CompilationSettings = project.GetCompilerOptions(frameworkName, configuration)
-                                                 .ToCompilationSettings(frameworkName),
+                                                 .ToCompilationSettings(frameworkName, _hostServices),
                     SourceFiles = dependencySources,
                     Diagnostics = dependencyInfo.HostContext.DependencyWalker.GetDependencyDiagnostics(project.ProjectFilePath),
                     DependencyInfo = dependencyInfo

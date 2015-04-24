@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Versioning;
 using System.Xml.Linq;
+using Microsoft.Framework.Runtime.Infrastructure;
 using NuGet;
 
 namespace Microsoft.Framework.Runtime
@@ -132,8 +133,9 @@ namespace Microsoft.Framework.Runtime
 
         public static string GetReferenceAssembliesPath()
         {
-#if DNX451            
-            if (PlatformHelper.IsMono)
+#if DNX451
+            var isMono = ((IRuntimeEnvironment)CallContextServiceLocator.Locator.ServiceProvider.GetService(typeof(IRuntimeEnvironment))).RuntimeType == "Mono";
+            if (isMono)
             {
                 var mscorlibLocationOnThisRunningMonoInstance = typeof(object).GetTypeInfo().Assembly.Location;
 
@@ -141,7 +143,7 @@ namespace Microsoft.Framework.Runtime
 
                 return Path.Combine(libPath, "xbuild-frameworks");
             }
-#endif 
+#endif
 
             // References assemblies are in %ProgramFiles(x86)% on
             // 64 bit machines
@@ -163,7 +165,7 @@ namespace Microsoft.Framework.Runtime
                     programFiles,
                     "Reference Assemblies", "Microsoft", "Framework");
         }
-        
+
         private static FrameworkInformation GetFrameworkInformation(FrameworkName targetFramework)
         {
             string referenceAssembliesPath = GetReferenceAssembliesPath();
@@ -177,7 +179,8 @@ namespace Microsoft.Framework.Runtime
 
             // Skip this on mono since it has a slightly different set of reference assemblies at a different
             // location
-            if (!PlatformHelper.IsMono && FrameworkDefinitions.TryPopulateFrameworkFastPath(targetFramework.Identifier, targetFramework.Version, referenceAssembliesPath, out frameworkInfo))
+            var isMono = ((IRuntimeEnvironment)CallContextServiceLocator.Locator.ServiceProvider.GetService(typeof(IRuntimeEnvironment))).RuntimeType == "Mono";
+            if (!isMono && FrameworkDefinitions.TryPopulateFrameworkFastPath(targetFramework.Identifier, targetFramework.Version, referenceAssembliesPath, out frameworkInfo))
             {
                 return frameworkInfo;
             }

@@ -40,7 +40,7 @@ namespace Microsoft.Framework.Runtime
 
             var referenceAssemblyDependencyResolver = new ReferenceAssemblyDependencyResolver(FrameworkReferenceResolver);
             NuGetDependencyProvider = new NuGetDependencyResolver(new PackageRepository(PackagesDirectory));
-            var gacDependencyResolver = new GacDependencyResolver();
+            var gacDependencyResolver = new GacDependencyResolver(serviceProvider);
             ProjectDepencyProvider = new ProjectReferenceDependencyProvider(ProjectResolver);
             var unresolvedDependencyProvider = new UnresolvedDependencyProvider();
 

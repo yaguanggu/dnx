@@ -33,7 +33,8 @@ namespace Microsoft.Framework.Runtime.Roslyn
             ICompilationProject project,
             ILibraryKey target,
             Func<ILibraryExport> referenceResolver,
-            Func<IList<ResourceDescriptor>> resourcesResolver)
+            Func<IList<ResourceDescriptor>> resourcesResolver,
+            IServiceProvider services)
         {
             var export = referenceResolver();
             if (export == null)

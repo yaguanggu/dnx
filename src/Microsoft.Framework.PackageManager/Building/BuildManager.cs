@@ -59,14 +59,16 @@ namespace Microsoft.Framework.PackageManager
                 return false;
             }
 
+            var isMono = ((IRuntimeEnvironment)_hostServices.GetService(typeof(IRuntimeEnvironment))).RuntimeType == "Mono";
+
             if (_buildOptions.GeneratePackages &&
-                !ScriptExecutor.Execute(project, "prepack", GetScriptVariable))
+                !ScriptExecutor.Execute(project, "prepack", GetScriptVariable, isMono))
             {
                 LogError(ScriptExecutor.ErrorMessage);
                 return false;
             }
 
-            if (!ScriptExecutor.Execute(project, "prebuild", GetScriptVariable))
+            if (!ScriptExecutor.Execute(project, "prebuild", GetScriptVariable, isMono))
             {
                 LogError(ScriptExecutor.ErrorMessage);
                 return false;
@@ -194,14 +196,14 @@ namespace Microsoft.Framework.PackageManager
                 }
             }
 
-            if (!ScriptExecutor.Execute(project, "postbuild", GetScriptVariable))
+            if (!ScriptExecutor.Execute(project, "postbuild", GetScriptVariable, isMono))
             {
                 LogError(ScriptExecutor.ErrorMessage);
                 return false;
             }
 
             if (_buildOptions.GeneratePackages &&
-                !ScriptExecutor.Execute(project, "postpack", GetScriptVariable))
+                !ScriptExecutor.Execute(project, "postpack", GetScriptVariable, isMono))
             {
                 LogError(ScriptExecutor.ErrorMessage);
                 return false;

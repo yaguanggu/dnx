@@ -11,11 +11,13 @@ namespace Microsoft.Framework.PackageManager.Publish
     {
         private readonly FrameworkName _frameworkName;
         private readonly string _runtimePath;
+        private readonly bool _isMono;
 
-        public PublishRuntime(PublishRoot root, FrameworkName frameworkName, string runtimePath)
+        public PublishRuntime(PublishRoot root, FrameworkName frameworkName, string runtimePath, bool isMono)
         {
             _frameworkName = frameworkName;
             _runtimePath = runtimePath;
+            _isMono = isMono;
             Name = new DirectoryInfo(_runtimePath).Name;
             TargetPath = Path.Combine(root.TargetPackagesPath, Name);
         }
@@ -41,7 +43,7 @@ namespace Microsoft.Framework.PackageManager.Publish
 
             new PublishOperations().Copy(_runtimePath, TargetPath);
 
-            if (PlatformHelper.IsMono)
+            if (_isMono)
             {
                 // Executable permissions on dnx lost on copy. 
                 var dnxPath = Path.Combine(TargetPath, "bin", "dnx");

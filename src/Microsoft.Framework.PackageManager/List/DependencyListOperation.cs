@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Runtime.Versioning;
 using Microsoft.Framework.PackageManager.Algorithms;
@@ -18,11 +19,11 @@ namespace Microsoft.Framework.PackageManager.List
         private readonly DependencyListOptions _options;
         private readonly ApplicationHostContext _hostContext;
 
-        public DependencyListOperation(DependencyListOptions options, FrameworkName framework)
+        public DependencyListOperation(DependencyListOptions options, FrameworkName framework, IServiceProvider services)
         {
             _options = options;
             _framework = framework;
-            _hostContext = CreateApplicationHostContext();
+            _hostContext = CreateApplicationHostContext(services);
         }
 
         public bool Execute()
@@ -66,13 +67,13 @@ namespace Microsoft.Framework.PackageManager.List
             }
         }
 
-        private ApplicationHostContext CreateApplicationHostContext()
+        private ApplicationHostContext CreateApplicationHostContext(IServiceProvider services)
         {
             var accessor = new CacheContextAccessor();
             var cache = new Cache(accessor);
 
             var hostContext = new ApplicationHostContext(
-                serviceProvider: null,
+                serviceProvider: services,
                 projectDirectory: _options.Project.ProjectDirectory,
                 packagesDirectory: null,
                 configuration: Configuration,

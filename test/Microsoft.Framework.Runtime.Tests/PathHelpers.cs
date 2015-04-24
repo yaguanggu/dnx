@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Microsoft.Framework.Runtime.Infrastructure;
 
 namespace Microsoft.Framework.Runtime.Tests
 {
@@ -14,8 +15,8 @@ namespace Microsoft.Framework.Runtime.Tests
         public static string GetRootedPath(params string[] paths)
         {
             string root = "/root";
-
-            if (PlatformHelper.IsWindows)
+            var isWindows = ((IRuntimeEnvironment)CallContextServiceLocator.Locator.ServiceProvider.GetService(typeof(IRuntimeEnvironment))).OperatingSystem == "Windows";
+            if (isWindows)
             {
                 root = @"C:\";
             }

@@ -12,6 +12,7 @@ namespace Microsoft.Framework.Runtime.Compilation
             ICompilationProject project,
             ILibraryKey target,
             Func<ILibraryExport> referenceResolver,
-            Func<IList<ResourceDescriptor>> resourcesResolver);
+            Func<IList<ResourceDescriptor>> resourcesResolver,
+            IServiceProvider services);
     }
 }

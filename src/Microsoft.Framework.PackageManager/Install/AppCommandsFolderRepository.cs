@@ -14,14 +14,16 @@ namespace Microsoft.Framework.PackageManager
     {
         private readonly NuGet.IFileSystem _commandsFolder;
         private readonly DefaultPackagePathResolver _pathResolver;
+        private readonly bool _isWindows;
 
         // Key = command; Value = app name
         private IDictionary<string, NuGet.PackageInfo> _commands = new Dictionary<string, NuGet.PackageInfo>();
 
-        public AppCommandsFolderRepository(string commandsFolder)
+        public AppCommandsFolderRepository(string commandsFolder, IServiceProvider services)
         {
             _commandsFolder = new NuGet.PhysicalFileSystem(commandsFolder);
             _pathResolver = new DefaultPackagePathResolver(_commandsFolder);
+            _isWindows = ((IRuntimeEnvironment)services.GetService(typeof(IRuntimeEnvironment))).OperatingSystem == "Windows";
         }
 
         public IPackagePathResolver PathResolver
@@ -66,7 +68,7 @@ namespace Microsoft.Framework.PackageManager
         public void Remove(string commandName)
         {
             string commandFileName = commandName +
-                (PlatformHelper.IsWindows ? ".cmd" : string.Empty);
+                (_isWindows ? ".cmd" : string.Empty);
 
             _commands.Remove(commandName);
             _commandsFolder.DeleteFile(commandFileName);
@@ -76,7 +78,7 @@ namespace Microsoft.Framework.PackageManager
         {
             _commands = new Dictionary<string, NuGet.PackageInfo>();
 
-            string pathFilter = PlatformHelper.IsWindows ? "*.cmd" : "*.*";
+            string pathFilter = _isWindows ? "*.cmd" : "*.*";
 
             var allCommandFiles = _commandsFolder
                     .GetFiles(".", pathFilter, recursive: false)
@@ -125,7 +127,7 @@ namespace Microsoft.Framework.PackageManager
             }
         }
 
-        public static AppCommandsFolderRepository Create(string installPath)
+        public static AppCommandsFolderRepository Create(string installPath, IServiceProvider services)
         {
             var binFolder = installPath;
             var installPackagesFolder = Path.Combine(binFolder, InstallGlobalCommand.TargetPackagesFolderName);
@@ -137,13 +139,13 @@ namespace Microsoft.Framework.PackageManager
                 File.WriteAllText(installGlobalJsonPath, @"{""packages"":"".""}");
             }
 
-            var repo = new AppCommandsFolderRepository(binFolder);
+            var repo = new AppCommandsFolderRepository(binFolder, services);
             repo.Load();
 
             return repo;
         }
 
-        public static AppCommandsFolderRepository CreateDefault()
+        public static AppCommandsFolderRepository CreateDefault(IServiceProvider services)
         {
             // TODO: use Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) when it's available on CoreCLR
             var userProfileFolder = Environment.GetEnvironmentVariable("USERPROFILE");
@@ -163,7 +165,7 @@ namespace Microsoft.Framework.PackageManager
                 "bin");
             Directory.CreateDirectory(binFolder);
 
-            return Create(binFolder);
+            return Create(binFolder, services);
         }
     }
 }

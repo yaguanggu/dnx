@@ -21,7 +21,7 @@ namespace Microsoft.Framework.Runtime
             socket.Connect(new IPEndPoint(IPAddress.Loopback, runtimeOptions.CompilationServerPort.Value));
 
             var networkStream = new NetworkStream(socket);
-            
+
             _compiler = new DesignTimeHostCompiler(shutdown, watcher, networkStream);
         }
 
@@ -29,7 +29,8 @@ namespace Microsoft.Framework.Runtime
             ICompilationProject project,
             ILibraryKey target,
             Func<ILibraryExport> referenceResolver,
-            Func<IList<ResourceDescriptor>> resourcesResolver)
+            Func<IList<ResourceDescriptor>> resourcesResolver,
+            IServiceProvider services)
         {
             // The target framework and configuration are assumed to be correct
             // in the design time process

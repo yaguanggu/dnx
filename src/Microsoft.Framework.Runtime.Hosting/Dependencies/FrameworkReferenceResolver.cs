@@ -18,6 +18,7 @@ namespace Microsoft.Framework.Runtime.Dependencies
     {
         private readonly ILogger Log;
         private readonly IDictionary<NuGetFramework, FrameworkInformation> _cache = new Dictionary<NuGetFramework, FrameworkInformation>();
+        private readonly IServiceProvider _services;
 
         private static readonly ISet<string> _desktopFrameworkNames = new HashSet<string>()
         {
@@ -25,9 +26,10 @@ namespace Microsoft.Framework.Runtime.Dependencies
             FrameworkConstants.FrameworkIdentifiers.Dnx
         };
 
-        public FrameworkReferenceResolver()
+        public FrameworkReferenceResolver(IServiceProvider services)
         {
             Log = RuntimeLogging.Logger<FrameworkReferenceResolver>();
+            _services = services;
         }
 
         public bool TryGetAssembly(string name, NuGetFramework targetFramework, out string path, out NuGetVersion version)
@@ -129,10 +131,10 @@ namespace Microsoft.Framework.Runtime.Dependencies
             return information.RedistListPath;
         }
 
-        public static string GetReferenceAssembliesPath()
+        public static string GetReferenceAssembliesPath(bool isMono)
         {
-#if DNX451            
-            if (PlatformHelper.IsMono)
+#if DNX451
+            if (isMono)
             {
                 var mscorlibLocationOnThisRunningMonoInstance = typeof(object).GetTypeInfo().Assembly.Location;
 
@@ -140,7 +142,7 @@ namespace Microsoft.Framework.Runtime.Dependencies
 
                 return Path.Combine(libPath, "xbuild-frameworks");
             }
-#endif 
+#endif
             // References assemblies are in %ProgramFiles(x86)% on
             // 64 bit machines
             var programFiles = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
@@ -165,7 +167,8 @@ namespace Microsoft.Framework.Runtime.Dependencies
         
         private FrameworkInformation GetFrameworkInformation(NuGetFramework targetFramework)
         {
-            string referenceAssembliesPath = GetReferenceAssembliesPath();
+            var isMono = ((IRuntimeEnvironment)_services.GetService(typeof(IRuntimeEnvironment))).RuntimeType == "Mono";
+            string referenceAssembliesPath = GetReferenceAssembliesPath(isMono);
 
             if (string.IsNullOrEmpty(referenceAssembliesPath))
             {
@@ -175,7 +178,7 @@ namespace Microsoft.Framework.Runtime.Dependencies
             // Skip this on mono since it has a slightly different set of reference assemblies at a different
             // location
             FrameworkInformation frameworkInfo;
-            if (!PlatformHelper.IsMono && FrameworkDefinitions.TryPopulateFrameworkFastPath(targetFramework.Framework, targetFramework.Version, referenceAssembliesPath, out frameworkInfo))
+            if (!isMono && FrameworkDefinitions.TryPopulateFrameworkFastPath(targetFramework.Framework, targetFramework.Version, referenceAssembliesPath, out frameworkInfo))
             {
                 return frameworkInfo;
             }

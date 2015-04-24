@@ -15,12 +15,14 @@ namespace Microsoft.Framework.PackageManager.Publish
     {
         private readonly IServiceProvider _hostServices;
         private readonly PublishOptions _options;
+        private readonly bool _isMono;
 
         public PublishManager(IServiceProvider hostServices, PublishOptions options)
         {
             _hostServices = hostServices;
             _options = options;
             _options.ProjectDir = Normalize(_options.ProjectDir);
+            _isMono = ((IRuntimeEnvironment)_hostServices.GetService(typeof(IRuntimeEnvironment))).RuntimeType == "Mono";
 
             var outputDir = _options.OutputDir ?? Path.Combine(_options.ProjectDir, "bin", "output");
             _options.OutputDir = Normalize(outputDir);
@@ -100,13 +102,13 @@ namespace Microsoft.Framework.PackageManager.Publish
                 return null;
             };
 
-            if (!ScriptExecutor.Execute(project, "prepare", getVariable))
+            if (!ScriptExecutor.Execute(project, "prepare", getVariable, _isMono))
             {
                 _options.Reports.Error.WriteLine(ScriptExecutor.ErrorMessage);
                 return false;
             }
 
-            if (!ScriptExecutor.Execute(project, "prepublish", getVariable))
+            if (!ScriptExecutor.Execute(project, "prepublish", getVariable, _isMono))
             {
                 _options.Reports.Error.WriteLine(ScriptExecutor.ErrorMessage);
                 return false;
@@ -259,7 +261,7 @@ namespace Microsoft.Framework.PackageManager.Publish
 
             var success = root.Emit();
 
-            if (!ScriptExecutor.Execute(project, "postpublish", getVariable))
+            if (!ScriptExecutor.Execute(project, "postpublish", getVariable, _isMono))
             {
                 _options.Reports.Error.WriteLine(ScriptExecutor.ErrorMessage);
                 return false;
@@ -284,13 +286,13 @@ namespace Microsoft.Framework.PackageManager.Publish
                 return false;
             }
 
-            root.Runtimes.Add(new PublishRuntime(root, frameworkName, runtimePath));
+            root.Runtimes.Add(new PublishRuntime(root, frameworkName, runtimePath, _isMono));
             return true;
         }
 
         private DependencyContext CreateDependencyContext(Runtime.Project project, FrameworkName frameworkName)
         {
-            var dependencyContext = new DependencyContext(project.ProjectDirectory, _options.Configuration, frameworkName);
+            var dependencyContext = new DependencyContext(project.ProjectDirectory, _options.Configuration, frameworkName, _hostServices);
             dependencyContext.Walk(project.Name, project.Version);
             return dependencyContext;
         }

@@ -7,12 +7,20 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Framework.CommonTestUtils;
 using Microsoft.Framework.Runtime;
+using Microsoft.Framework.Runtime.Infrastructure;
 using Xunit;
 
 namespace Microsoft.Framework.PackageManager
 {
     public class DnuWrapTests
     {
+        private readonly bool isMono;
+
+        public DnuWrapTests()
+        {
+            isMono = ((IRuntimeEnvironment)CallContextServiceLocator.Locator.ServiceProvider.GetService(typeof(IRuntimeEnvironment))).RuntimeType == "Mono";
+        }
+
         public static IEnumerable<object[]> RuntimeComponents
         {
             get
@@ -29,7 +37,7 @@ namespace Microsoft.Framework.PackageManager
         {
             var runtimeHomeDir = TestUtils.GetRuntimeHomeDir(flavor, os, architecture);
 
-            if (PlatformHelper.IsMono)
+            if (isMono)
             {
                 return;
             }
@@ -105,7 +113,7 @@ namespace Microsoft.Framework.PackageManager
         {
             var runtimeHomeDir = TestUtils.GetRuntimeHomeDir(flavor, os, architecture);
 
-            if (PlatformHelper.IsMono)
+            if (isMono)
             {
                 return;
             }
@@ -186,7 +194,7 @@ namespace Microsoft.Framework.PackageManager
         {
             var runtimeHomeDir = TestUtils.GetRuntimeHomeDir(flavor, os, architecture);
 
-            if (PlatformHelper.IsMono)
+            if (isMono)
             {
                 return;
             }

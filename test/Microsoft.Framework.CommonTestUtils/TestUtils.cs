@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Microsoft.Framework.Runtime;
+using Microsoft.Framework.Runtime.Infrastructure;
 
 namespace Microsoft.Framework.CommonTestUtils
 {
@@ -107,7 +108,8 @@ namespace Microsoft.Framework.CommonTestUtils
             runtimeName = Path.GetFileNameWithoutExtension(runtimeNupkg);
             var runtimeRoot = Path.Combine(runtimeHomePath, "runtimes", runtimeName);
 
-            if (!PlatformHelper.IsMono)
+            var isMono = ((IRuntimeEnvironment)CallContextServiceLocator.Locator.ServiceProvider.GetService(typeof(IRuntimeEnvironment))).RuntimeType == "Mono";
+            if (!isMono)
             {
                 System.IO.Compression.ZipFile.ExtractToDirectory(runtimeNupkg, runtimeRoot);
             }
@@ -288,7 +290,7 @@ namespace Microsoft.Framework.CommonTestUtils
             var p = (int)Environment.OSVersion.Platform;
             return (p != 4) && (p != 6) && (p != 128);
 #else
-            return PlatformHelper.IsWindows;
+            return ((IRuntimeEnvironment)CallContextServiceLocator.Locator.ServiceProvider.GetService(typeof(IRuntimeEnvironment))).OperatingSystem == "Windows";
 #endif
         }
     }

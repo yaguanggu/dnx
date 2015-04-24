@@ -14,10 +14,16 @@ namespace Microsoft.Framework.Runtime
     public class GacDependencyResolver : IDependencyProvider, ILibraryExportProvider
     {
         private readonly Dictionary<string, string> _resolvedPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly bool _isMono;
+
+        public GacDependencyResolver(IServiceProvider services)
+        {
+            _isMono = ((IRuntimeEnvironment)services.GetService(typeof(IRuntimeEnvironment))).RuntimeType == "Mono";
+        }
 
         public IEnumerable<string> GetAttemptedPaths(FrameworkName targetFramework)
         {
-            if (PlatformHelper.IsMono)
+            if (_isMono)
             {
                 return Enumerable.Empty<string>();
             }
@@ -37,7 +43,7 @@ namespace Microsoft.Framework.Runtime
                 return null;
             }
 
-            if (PlatformHelper.IsMono)
+            if (_isMono)
             {
                 return null;
             }

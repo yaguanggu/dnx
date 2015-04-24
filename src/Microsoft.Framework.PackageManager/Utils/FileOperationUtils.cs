@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.Framework.Runtime;
+using Microsoft.Framework.Runtime.Infrastructure;
 
 namespace Microsoft.Framework.PackageManager
 {
@@ -38,7 +39,8 @@ namespace Microsoft.Framework.PackageManager
 
         public static bool MarkExecutable(string file)
         {
-            if (PlatformHelper.IsWindows)
+            var isWindows = ((IRuntimeEnvironment)CallContextServiceLocator.Locator.ServiceProvider.GetService(typeof(IRuntimeEnvironment))).OperatingSystem == "Windows";
+            if (isWindows)
             {
                 // This makes sense only on non Windows machines
                 return false;

@@ -24,14 +24,16 @@ namespace Microsoft.Framework.PackageManager
     public class RestoreCommand
     {
         private static readonly int MaxDegreesOfConcurrency = Environment.ProcessorCount;
+        private readonly bool _isMono;
 
-        public RestoreCommand(IApplicationEnvironment env)
+        public RestoreCommand(IApplicationEnvironment env, bool isMono)
         {
             ApplicationEnvironment = env;
             FileSystem = new PhysicalFileSystem(Directory.GetCurrentDirectory());
             MachineWideSettings = new CommandLineMachineWideSettings();
             ScriptExecutor = new ScriptExecutor();
             ErrorMessages = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+            _isMono = isMono;
         }
 
         public FeedOptions FeedOptions { get; set; }
@@ -198,7 +200,7 @@ namespace Microsoft.Framework.PackageManager
                 return null;
             };
 
-            if (!ScriptExecutor.Execute(project, "prerestore", getVariable))
+            if (!ScriptExecutor.Execute(project, "prerestore", getVariable, _isMono))
             {
                 ErrorMessages.GetOrAdd("prerestore", _ => new List<string>()).Add(ScriptExecutor.ErrorMessage);
                 Reports.Error.WriteLine(ScriptExecutor.ErrorMessage);
@@ -436,14 +438,14 @@ namespace Microsoft.Framework.PackageManager
                 WriteLockFile(projectLockFilePath, project, graphItems, new PackageRepository(packagesDirectory), frameworks);
             }
 
-            if (!ScriptExecutor.Execute(project, "postrestore", getVariable))
+            if (!ScriptExecutor.Execute(project, "postrestore", getVariable, _isMono))
             {
                 ErrorMessages.GetOrAdd("postrestore", _ => new List<string>()).Add(ScriptExecutor.ErrorMessage);
                 Reports.Error.WriteLine(ScriptExecutor.ErrorMessage);
                 return false;
             }
 
-            if (!ScriptExecutor.Execute(project, "prepare", getVariable))
+            if (!ScriptExecutor.Execute(project, "prepare", getVariable, _isMono))
             {
                 ErrorMessages.GetOrAdd("prepare", _ => new List<string>()).Add(ScriptExecutor.ErrorMessage);
                 Reports.Error.WriteLine(ScriptExecutor.ErrorMessage);
@@ -807,7 +809,7 @@ namespace Microsoft.Framework.PackageManager
 
         private bool RestoringInParallel()
         {
-            return Parallel && !PlatformHelper.IsMono;
+            return Parallel && !_isMono;
         }
 
         // Based on http://blogs.msdn.com/b/pfxteam/archive/2012/03/05/10278165.aspx

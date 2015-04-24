@@ -88,7 +88,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
             var sw = Stopwatch.StartNew();
 
             var compilationSettings = project.GetCompilerOptions(target.TargetFramework, target.Configuration)
-                                             .ToCompilationSettings(target.TargetFramework);
+                                             .ToCompilationSettings(target.TargetFramework, _services);
 
             var sourceFiles = Enumerable.Empty<String>();
             if (isMainAspect)

@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Framework.Runtime.Compilation;
+using Microsoft.Framework.Runtime.Infrastructure;
 
 namespace Microsoft.Framework.Runtime.Roslyn
 {
@@ -264,7 +265,8 @@ namespace Microsoft.Framework.Runtime.Roslyn
         {
             try
             {
-                if (PlatformHelper.IsMono)
+                var isMono = ((IRuntimeEnvironment)CallContextServiceLocator.Locator.ServiceProvider.GetService(typeof(IRuntimeEnvironment))).RuntimeType == "Mono";
+                if (isMono)
                 {
                     return false;
                 }

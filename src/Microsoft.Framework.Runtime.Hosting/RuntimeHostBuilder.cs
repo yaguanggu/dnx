@@ -85,7 +85,7 @@ namespace Microsoft.Framework.Runtime
             }
 
             log.LogVerbose("Registering ReferenceAssemblyDependencyProvider");
-            var referenceResolver = new FrameworkReferenceResolver();
+            var referenceResolver = new FrameworkReferenceResolver(services);
             hostBuilder.DependencyProviders.Add(new ReferenceAssemblyDependencyProvider(referenceResolver));
 
             // GAC resolver goes here! :)
