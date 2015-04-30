@@ -24,7 +24,8 @@ namespace NuGet
 #if DNX451
             var commonAppData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
 #else
-            var commonAppData = Environment.GetEnvironmentVariable("ProgramData");
+//            var commonAppData = Environment.GetEnvironmentVariable("ProgramData");
+var commonAppData = "~/.config/";
 #endif
             var baseDirectory = Path.Combine(commonAppData, "NuGet");
             PhysicalFileSystem fileSystem = new PhysicalFileSystem(baseDirectory);

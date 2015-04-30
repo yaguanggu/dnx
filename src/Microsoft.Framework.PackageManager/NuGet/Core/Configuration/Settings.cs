@@ -107,7 +107,8 @@ namespace NuGet
 #if DNX451
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 #else
-            var appData = Environment.GetEnvironmentVariable("APPDATA");
+            //var appData = Environment.GetEnvironmentVariable("APPDATA");
+var appData = "~/.config/";
 #endif
             var redirectSettingsPath = Path.Combine(appData,
                                                     "nuget",

@@ -189,7 +189,8 @@ namespace Microsoft.Framework.PackageManager.Restore.NuGet
 #if DNX451
             var localAppDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 #else
-            var localAppDataFolder = Environment.GetEnvironmentVariable("LocalAppData");
+            //var localAppDataFolder = Environment.GetEnvironmentVariable("LocalAppData");
+var localAppDataFolder = "~/.local/share";
 #endif
             var cacheFolder = Path.Combine(localAppDataFolder, "dnu", "cache", baseFolderName);
             var cacheFile = Path.Combine(cacheFolder, baseFileName);

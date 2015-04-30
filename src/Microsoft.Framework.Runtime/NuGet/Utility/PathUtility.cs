@@ -3,6 +3,8 @@
 
 using System;
 using System.IO;
+using Microsoft.Framework.Runtime.Infrastructure;
+using Microsoft.Framework.Runtime;
 
 namespace NuGet
 {
@@ -83,7 +85,7 @@ namespace NuGet
             }
 
             StringComparison compare;
-            if(Microsoft.Framework.Runtime.PlatformHelper.IsWindows)
+            if(((IRuntimeEnvironment)CallContextServiceLocator.Locator.ServiceProvider.GetService(typeof(IRuntimeEnvironment))).OperatingSystem == "Windows")//Microsoft.Framework.Runtime.PlatformHelper.IsWindows)
             {
                 compare = StringComparison.OrdinalIgnoreCase;
             }

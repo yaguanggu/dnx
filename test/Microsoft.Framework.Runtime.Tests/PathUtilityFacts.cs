@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using NuGet;
 using Xunit;
-
+using Microsoft.Framework.Runtime.Infrastructure;
+using Microsoft.Framework.Runtime;
 namespace Microsoft.Framework.Runtime.Tests
 {
     public class PathUtilityFacts
@@ -58,7 +59,7 @@ namespace Microsoft.Framework.Runtime.Tests
                     new object[] { "app", "/folder/", "/folder/app" },
                 };
 
-                if (PlatformHelper.IsWindows)
+                if (((IRuntimeEnvironment)CallContextServiceLocator.Locator.ServiceProvider.GetService(typeof(IRuntimeEnvironment))).OperatingSystem == "Windows")
                 {
                     list.AddRange(new List<object[]>
                     {
