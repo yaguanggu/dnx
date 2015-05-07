@@ -16,7 +16,7 @@ namespace Microsoft.Framework.PackageManager
 
         IEnumerable<string> Commands { get; }
 
-        NuGet.PackageInfo FindCommandOwner(string command);
+        LocalPackageInfo FindCommandOwner(string command);
 
         void Remove(string commandName);
     }

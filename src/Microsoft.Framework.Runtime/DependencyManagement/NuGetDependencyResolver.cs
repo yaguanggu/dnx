@@ -127,7 +127,7 @@ namespace Microsoft.Framework.Runtime
             return null;
         }
 
-        private IEnumerable<LibraryDependency> GetDependencies(PackageInfo packageInfo, FrameworkName targetFramework, LockFileTargetLibrary targetLibrary)
+        private IEnumerable<LibraryDependency> GetDependencies(LocalPackageInfo packageInfo, FrameworkName targetFramework, LockFileTargetLibrary targetLibrary)
         {
             if (targetLibrary != null)
             {
@@ -313,7 +313,7 @@ namespace Microsoft.Framework.Runtime
 
         private string ResolvePackagePath(IPackagePathResolver defaultResolver,
                                           IEnumerable<IPackagePathResolver> cacheResolvers,
-                                          PackageInfo packageInfo)
+                                          LocalPackageInfo packageInfo)
         {
             string expectedHash = packageInfo.LockFileLibrary.Sha512;
 
@@ -409,7 +409,7 @@ namespace Microsoft.Framework.Runtime
             return _repository.FindPackagesById(name).FirstOrDefault(p => p.Version == version)?.Package;
         }
 
-        private PackageInfo FindCandidate(string name, SemanticVersionRange versionRange)
+        private LocalPackageInfo FindCandidate(string name, SemanticVersionRange versionRange)
         {
             var packages = _repository.FindPackagesById(name);
 
@@ -425,7 +425,7 @@ namespace Microsoft.Framework.Runtime
                 return null;
             }
 
-            PackageInfo bestMatch = null;
+            LocalPackageInfo bestMatch = null;
 
             foreach (var packageInfo in packages)
             {
@@ -480,7 +480,7 @@ namespace Microsoft.Framework.Runtime
 
         private class PackageDescription
         {
-            public PackageInfo Package { get; set; }
+            public LocalPackageInfo Package { get; set; }
 
             public LibraryDescription Library { get; set; }
 

@@ -3,6 +3,7 @@
 
 using Microsoft.Framework.Runtime;
 using System.Collections.Generic;
+using NuGet;
 
 namespace Microsoft.Framework.PackageManager
 {

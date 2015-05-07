@@ -6,11 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
-using Microsoft.Framework.Runtime;
-using Microsoft.Framework.Runtime.DependencyManagement;
-using NuGet;
 using Microsoft.Framework.PackageManager.Restore.RuntimeModel;
-using System.Linq;
+using NuGet;
 
 namespace Microsoft.Framework.PackageManager
 {

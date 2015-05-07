@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Microsoft.Framework.PathHelpers;
 using NuGet;
 
 namespace Microsoft.Framework.PackageManager.Publish

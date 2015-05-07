@@ -8,8 +8,7 @@ using System.Linq;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Microsoft.Framework.PackageManager.Restore.NuGet;
-using Microsoft.Framework.Runtime;
-using Microsoft.Framework.Runtime.DependencyManagement;
+
 using NuGet;
 using Microsoft.Framework.PackageManager.Restore.RuntimeModel;
 

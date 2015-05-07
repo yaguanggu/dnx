@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Framework.Runtime;
+using NuGet;
 
 namespace Microsoft.Framework.PackageManager
 {

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.Framework.PackageManager.Utils;
+using Microsoft.Framework.PathHelpers;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Caching;
 using NuGet;

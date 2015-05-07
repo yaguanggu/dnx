@@ -16,7 +16,6 @@ using Microsoft.Framework.PackageManager.Publish;
 using Microsoft.Framework.PackageManager.Restore.RuntimeModel;
 using Microsoft.Framework.PackageManager.Utils;
 using Microsoft.Framework.Runtime;
-using Microsoft.Framework.Runtime.DependencyManagement;
 using NuGet;
 
 namespace Microsoft.Framework.PackageManager
@@ -196,7 +195,7 @@ namespace Microsoft.Framework.PackageManager
                 useLockFile = true;
             }
 
-            if (useLockFile && !lockFile.IsValidForProject(project))
+            if (useLockFile && !project.IsValid(lockFile))
             {
                 // Exhibit the same behavior as if it has been run with "dnu restore --lock"
                 Reports.Information.WriteLine("Updating the invalid lock file with {0}",

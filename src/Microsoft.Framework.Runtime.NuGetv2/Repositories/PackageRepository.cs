@@ -10,7 +10,7 @@ namespace NuGet
 {
     public class PackageRepository
     {
-        private readonly Dictionary<string, IEnumerable<PackageInfo>> _cache;
+        private readonly Dictionary<string, IEnumerable<LocalPackageInfo>> _cache;
         private readonly IFileSystem _repositoryRoot;
         private readonly bool _checkPackageIdCase;
         private ILookup<string, LockFileLibrary> _lockFileLibraries;
@@ -25,7 +25,7 @@ namespace NuGet
             _repositoryRoot = root;
             _checkPackageIdCase = caseSensitivePackagesName;
 
-            _cache = new Dictionary<string, IEnumerable<PackageInfo>>(
+            _cache = new Dictionary<string, IEnumerable<LocalPackageInfo>>(
                 caseSensitivePackagesName ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
         }
 
@@ -39,7 +39,7 @@ namespace NuGet
             }
         }
 
-        public IDictionary<string, IEnumerable<PackageInfo>> GetAllPackages()
+        public IDictionary<string, IEnumerable<LocalPackageInfo>> GetAllPackages()
         {
             foreach (var packageDir in _repositoryRoot.GetDirectories("."))
             {
@@ -58,7 +58,7 @@ namespace NuGet
             _lockFileLibraries = lockFile.Libraries.ToLookup(l => l.Name, stringComparer);
         }
 
-        public IEnumerable<PackageInfo> FindPackagesById(string packageId)
+        public IEnumerable<LocalPackageInfo> FindPackagesById(string packageId)
         {
             if (string.IsNullOrEmpty(packageId))
             {
@@ -68,13 +68,13 @@ namespace NuGet
             // packages\{packageId}\{version}\{packageId}.nuspec
             return _cache.GetOrAdd(packageId, id =>
             {
-                var packages = new List<PackageInfo>();
+                var packages = new List<LocalPackageInfo>();
 
                 if (_lockFileLibraries != null)
                 {
                     foreach (var lockFileLibrary in _lockFileLibraries[packageId])
                     {
-                        packages.Add(new PackageInfo(
+                        packages.Add(new LocalPackageInfo(
                             _repositoryRoot,
                             lockFileLibrary.Name,
                             lockFileLibrary.Version,
@@ -128,14 +128,14 @@ namespace NuGet
                         id = Path.GetFileNameWithoutExtension(manifestFileName);
                     }
 
-                    packages.Add(new PackageInfo(_repositoryRoot, id, version, versionDir));
+                    packages.Add(new LocalPackageInfo(_repositoryRoot, id, version, versionDir));
                 }
 
                 return packages;
             });
         }
 
-        public void RemovePackage(PackageInfo package)
+        public void RemovePackage(LocalPackageInfo package)
         {
             string packageName = package.Id;
             string packageVersion = package.Version.ToString();

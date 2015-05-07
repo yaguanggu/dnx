@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.Framework.ConcurrencyHelpers;
 using Microsoft.Framework.Runtime.Internal;
 using NuGet;
 

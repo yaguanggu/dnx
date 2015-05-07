@@ -4,9 +4,9 @@
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Framework.Runtime
+namespace Newtonsoft.Json.Linq
 {
-    public static class JTokenExtensions
+    internal static class JTokenExtensions
     {
         public static T[] ValueAsArray<T>(this JToken jToken)
         {

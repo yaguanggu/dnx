@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.PackageManager.Algorithms;
 using Microsoft.Framework.Runtime;
+using NuGet;
 
 namespace Microsoft.Framework.PackageManager.List
 {

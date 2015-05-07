@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Microsoft.Framework.ConcurrencyHelpers;
 using Microsoft.Framework.PackageManager.Publish;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Internal;

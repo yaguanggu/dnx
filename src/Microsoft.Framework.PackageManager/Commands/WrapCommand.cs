@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
 using System.Xml.Linq;
+using Microsoft.Framework.PathHelpers;
 using Microsoft.Framework.Runtime;
 using Newtonsoft.Json.Linq;
 using NuGet;

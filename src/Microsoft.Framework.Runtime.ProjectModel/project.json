@@ -1,12 +1,13 @@
 ﻿{
   "version": "1.0.0-*",
   "dependencies": {
-    "Newtonsoft.Json": "6.0.6",
+    "Microsoft.CodeAnalysis.CSharp": { "version": "1.0.0-*", "type": "build" },
+    "Microsoft.Framework.JsonExtensions.Sources": { "version": "1.0.0-*", "type": "build" },
+    "Microsoft.Framework.PathHelpers.Sources": { "version": "1.0.0-*", "type": "build" },
     "Microsoft.Framework.Runtime.Abstractions": "1.0.0-*",
     "Microsoft.Framework.Runtime.NuGetv2": "1.0.0-*",
-    "Microsoft.Framework.PathHelpers.Sources": { "version": "1.0.0-*", "type": "build" },
-    "Microsoft.CodeAnalysis.CSharp": { "version": "1.0.0-*", "type": "build" },
-    "Microsoft.Framework.Runtime.Roslyn.Abstractions": { "version": "1.0.0-*", "type": "build" }
+    "Microsoft.Framework.Runtime.Roslyn.Abstractions": { "version": "1.0.0-*", "type": "build" },
+    "Newtonsoft.Json": "6.0.6"
   },
   "compile": [
     "../../submodules/FileSystem/src/Microsoft.Framework.FileSystemGlobbing/**/*.cs"

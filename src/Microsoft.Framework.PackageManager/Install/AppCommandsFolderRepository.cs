@@ -16,7 +16,7 @@ namespace Microsoft.Framework.PackageManager
         private readonly DefaultPackagePathResolver _pathResolver;
 
         // Key = command; Value = app name
-        private IDictionary<string, NuGet.PackageInfo> _commands = new Dictionary<string, NuGet.PackageInfo>();
+        private IDictionary<string, LocalPackageInfo> _commands = new Dictionary<string, LocalPackageInfo>();
 
         public AppCommandsFolderRepository(string commandsFolder)
         {
@@ -56,9 +56,9 @@ namespace Microsoft.Framework.PackageManager
             }
         }
 
-        public NuGet.PackageInfo FindCommandOwner(string command)
+        public LocalPackageInfo FindCommandOwner(string command)
         {
-            NuGet.PackageInfo appPackage;
+            LocalPackageInfo appPackage;
             _commands.TryGetValue(command, out appPackage);
             return appPackage;
         }
@@ -74,7 +74,7 @@ namespace Microsoft.Framework.PackageManager
 
         public void Load()
         {
-            _commands = new Dictionary<string, NuGet.PackageInfo>();
+            _commands = new Dictionary<string, LocalPackageInfo>();
 
             string pathFilter = PlatformHelper.IsWindows ? "*.cmd" : "*.*";
 
@@ -113,7 +113,7 @@ namespace Microsoft.Framework.PackageManager
                     packageId,
                     packageVersion.ToString());
 
-                var appPackage = new NuGet.PackageInfo(
+                var appPackage = new LocalPackageInfo(
                     PackagesRoot,
                     packageId,
                     packageVersion,

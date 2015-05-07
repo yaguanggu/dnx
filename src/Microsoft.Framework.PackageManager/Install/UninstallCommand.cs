@@ -92,7 +92,7 @@ namespace Microsoft.Framework.PackageManager
                 var lockFile = lockFileFormat.Read(appLockFileFullPath);
                 foreach(var dependency in lockFile.Libraries)
                 {
-                    var dependencyPackage = new NuGet.PackageInfo(
+                    var dependencyPackage = new LocalPackageInfo(
                         _commandsRepo.PackagesRoot,
                         dependency.Name,
                         dependency.Version,

@@ -62,7 +62,7 @@ namespace Microsoft.Framework.Runtime.Servicing
             }
         }
 
-        public bool IsPackageServiceable(PackageInfo package)
+        public bool IsPackageServiceable(LocalPackageInfo package)
         {
             if (!_isEnabled)
             {

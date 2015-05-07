@@ -3,13 +3,13 @@ using System.IO;
 
 namespace NuGet
 {
-    public class PackageInfo
+    public class LocalPackageInfo
     {
         private readonly IFileSystem _repositoryRoot;
         private readonly string _versionDir;
         private IPackage _package;
 
-        public PackageInfo(
+        public LocalPackageInfo(
             IFileSystem repositoryRoot, 
             string packageId, 
             SemanticVersion version, 
@@ -48,11 +48,11 @@ namespace NuGet
 
         public override bool Equals(object obj)
         {
-            PackageInfo other = obj as PackageInfo;
+            LocalPackageInfo other = obj as LocalPackageInfo;
             return !object.ReferenceEquals(null, other) && Equals(other);
         }
 
-        public bool Equals(PackageInfo other)
+        public bool Equals(LocalPackageInfo other)
         {
             return !object.ReferenceEquals(null, other) &&
                    string.Equals(Id, other.Id) &&

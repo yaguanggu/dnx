@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
+using Microsoft.Framework.PathHelpers;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.Runtime.Caching;
 using Microsoft.Framework.Runtime.Compilation;

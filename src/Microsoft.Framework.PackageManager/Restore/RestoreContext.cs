@@ -6,6 +6,7 @@ using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Microsoft.Framework.Runtime;
 using Microsoft.Framework.PackageManager.Restore.RuntimeModel;
+using NuGet;
 
 namespace Microsoft.Framework.PackageManager
 {

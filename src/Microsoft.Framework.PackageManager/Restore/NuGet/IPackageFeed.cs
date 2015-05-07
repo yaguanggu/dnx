@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using NuGet;
 
 namespace Microsoft.Framework.PackageManager.Restore.NuGet
 {
