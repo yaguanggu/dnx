@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Framework.Runtime.Caching;
+using Microsoft.Framework.Runtime.Common.DependencyInjection;
 using Microsoft.Framework.Runtime.Compilation;
+using Microsoft.Framework.Runtime.Resources;
 
 namespace Microsoft.Framework.Runtime
 {
@@ -80,7 +82,7 @@ namespace Microsoft.Framework.Runtime
                     // Find the default project exporter
                     var projectCompiler = _projectCompilers.GetOrAdd(provider, typeInfo =>
                     {
-                        return CompilerServices.CreateService<IProjectCompiler>(_serviceProvider, _projectLoadContext.Value, typeInfo);
+                        return CreateService<IProjectCompiler>(_serviceProvider, _projectLoadContext.Value, typeInfo);
                     });
 
                     Logger.TraceInformation("[{0}]: GetProjectReference({1}, {2}, {3}, {4})", provider.TypeName, target.Name, target.TargetFramework, target.Configuration, target.Aspect);
@@ -127,6 +129,15 @@ namespace Microsoft.Framework.Runtime
 
                 return new LibraryExport(metadataReferences, sourceReferences);
             });
+        }
+
+        private static T CreateService<T>(IServiceProvider sp, IAssemblyLoadContext loadContext, TypeInformation typeInfo)
+        {
+            var assembly = loadContext.Load(typeInfo.AssemblyName);
+
+            var type = assembly.GetType(typeInfo.TypeName);
+
+            return (T)ActivatorUtilities.CreateInstance(sp, type);
         }
 
         private static string ResolvePath(Project project, string configuration, string path)

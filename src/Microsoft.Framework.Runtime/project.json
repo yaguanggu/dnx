@@ -2,28 +2,17 @@
     "version": "1.0.0-*",
     "description": "ASP.NET 5 runtime infrastructure for loading NuGet packages and projects.",
     "compilationOptions": { "define": [ "LOADER", "TRACE" ], "allowUnsafe": true, "warningsAsErrors": true },
-    "compile": [
-        "../../submodules/FileSystem/src/Microsoft.Framework.FileSystemGlobbing/**/*.cs",
-        "../Microsoft.Framework.Runtime.Hosting/ProjectFilesCollection.cs",
-        "../Microsoft.Framework.Runtime.Hosting/PatternsCollectionHelper.cs",
-        "../Microsoft.Framework.Runtime.Hosting/NamedResourceReader.cs",
-        "../Microsoft.Framework.Runtime.Hosting/PatternGroup.cs",
-        "../Microsoft.Framework.Runtime.Hosting/FileFormatException.cs",
-        "../Microsoft.Framework.Runtime.Hosting/FileFormatMessage.cs",
-        "../Microsoft.Framework.Runtime.Hosting/Dependencies/FrameworkDefinitions.cs",
-        "../Microsoft.Framework.Runtime.Hosting/Dependencies/FrameworkInformation.cs"
-    ],
-    "preprocess": [
-        "../../ext/compiler/preprocess/Internalization.cs"
-    ],
     "dependencies": {
-        "Microsoft.Framework.Runtime.Loader": "1.0.0-*",
-        "Microsoft.Framework.Runtime.Caching": "1.0.0-*",
+        "Microsoft.Framework.PathHelpers.Sources": { "version": "1.0.0-*", "type": "build" },
         "Microsoft.Framework.Runtime.Abstractions": "1.0.0-*",
-        "Microsoft.Framework.Runtime.Compilation.Common": { "version": "1.0.0-*", "type": "build" },
+        "Microsoft.Framework.Runtime.Caching": "1.0.0-*",
         "Microsoft.Framework.Runtime.Common": { "version": "1.0.0-*", "type": "build" },
-        "Microsoft.CodeAnalysis.CSharp": { "version": "1.0.0-*", "type": "build" },
-        "Microsoft.Framework.Runtime.Roslyn.Abstractions": { "version": "1.0.0-*", "type": "build" },
+        "Microsoft.Framework.Runtime.Compilation.Common": { "version": "1.0.0-*", "type": "build" },
+        "Microsoft.Framework.Runtime.Loader": "1.0.0-*",
+        "Microsoft.Framework.Runtime.NuGetv2": "1.0.0-*",
+        "Microsoft.Framework.Runtime.ReferenceAssemblies": "1.0.0-*",
+        "Microsoft.Framework.Runtime.Resources": "1.0.0-*",
+        "Microsoft.Framework.Runtime.ProjectModel": "1.0.0-*",
         "Newtonsoft.Json": "6.0.6"
     },
     "frameworks": {

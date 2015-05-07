@@ -4,10 +4,10 @@
 using System;
 using System.IO;
 using System.Runtime.Versioning;
+using Microsoft.Framework.PathHelpers;
 using Microsoft.Framework.Runtime.Caching;
 using Microsoft.Framework.Runtime.Common.DependencyInjection;
 using Microsoft.Framework.Runtime.Compilation;
-using Microsoft.Framework.Runtime.DependencyManagement;
 using Microsoft.Framework.Runtime.FileSystem;
 using Microsoft.Framework.Runtime.Loader;
 using NuGet;
@@ -65,7 +65,7 @@ namespace Microsoft.Framework.Runtime
             {
                 var lockFileFormat = new LockFileFormat();
                 var lockFile = lockFileFormat.Read(projectLockJsonPath);
-                validLockFile = lockFile.IsValidForProject(Project);
+                validLockFile = Project.IsValid(lockFile);
 
                 if (validLockFile || skipLockFileValidation)
                 {

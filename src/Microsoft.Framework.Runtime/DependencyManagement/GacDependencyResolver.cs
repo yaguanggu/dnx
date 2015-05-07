@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
 using Microsoft.Framework.Runtime.Compilation;
+using Microsoft.Framework.Runtime.Internal;
 using NuGet;
 
 namespace Microsoft.Framework.Runtime
@@ -56,7 +57,7 @@ namespace Microsoft.Framework.Runtime
                 return null;
             }
 
-            SemanticVersion assemblyVersion = VersionUtility.GetAssemblyVersion(path);
+            SemanticVersion assemblyVersion = AssemblyUtils.GetAssemblyVersion(path);
 
             if (version == null || version == assemblyVersion)
             {

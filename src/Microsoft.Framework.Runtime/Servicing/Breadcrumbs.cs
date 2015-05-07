@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Framework.Runtime.Internal;
 using NuGet;
 
 namespace Microsoft.Framework.Runtime.Servicing
@@ -30,6 +29,7 @@ namespace Microsoft.Framework.Runtime.Servicing
         public Breadcrumbs()
             : this(ResolveBreadcrumbsFolder())
         {
+
         }
 
         public Breadcrumbs(string breadcrumbsFolder)

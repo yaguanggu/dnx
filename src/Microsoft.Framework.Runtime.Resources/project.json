@@ -1,0 +1,21 @@
+﻿{
+  "version": "1.0.0-*",
+  "dependencies": {
+    "Microsoft.Framework.Runtime.Abstractions": "1.0.0-*",
+    "Microsoft.Framework.PathHelpers.Sources": { "version": "1.0.0-*", "type": "build" }
+  },
+
+  "frameworks": {
+    "dnx451": {
+      "frameworkAssemblies": {
+        "System.Xml": "",
+        "System.Xml.Linq": ""
+      }
+    },
+    "dnxcore50": {
+      "dependencies": {
+        "System.Xml.XDocument": "4.0.10-beta-*"
+      }
+    }
+  }
+}

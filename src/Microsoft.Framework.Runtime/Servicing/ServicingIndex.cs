@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Framework.PathHelpers;
 using NuGet;
 
 namespace Microsoft.Framework.Runtime.Servicing

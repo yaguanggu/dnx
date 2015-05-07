@@ -1,0 +1,21 @@
+﻿{
+  "version": "1.0.0-*",
+  "dependencies": {
+    "Newtonsoft.Json": "6.0.6",
+    "Microsoft.Framework.Runtime.Abstractions": "1.0.0-*",
+    "Microsoft.Framework.Runtime.NuGetv2": "1.0.0-*",
+    "Microsoft.Framework.PathHelpers.Sources": { "version": "1.0.0-*", "type": "build" },
+    "Microsoft.CodeAnalysis.CSharp": { "version": "1.0.0-*", "type": "build" },
+    "Microsoft.Framework.Runtime.Roslyn.Abstractions": { "version": "1.0.0-*", "type": "build" }
+  },
+  "compile": [
+    "../../submodules/FileSystem/src/Microsoft.Framework.FileSystemGlobbing/**/*.cs"
+  ],
+  "preprocess": [
+    "../../ext/compiler/preprocess/Internalization.cs"
+  ],
+  "frameworks": {
+    "dnx451": { },
+    "dnxcore50": { }
+  }
+}

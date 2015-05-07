@@ -3,7 +3,7 @@
 
 using NuGet;
 
-namespace Microsoft.Framework.PackageManager
+namespace NuGet
 {
     public class PackageInfo
     {
