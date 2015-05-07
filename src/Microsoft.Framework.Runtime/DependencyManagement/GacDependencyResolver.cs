@@ -57,9 +57,9 @@ namespace Microsoft.Framework.Runtime
                 return null;
             }
 
-            SemanticVersion assemblyVersion = AssemblyUtils.GetAssemblyVersion(path);
+            var assemblyVersion = AssemblyUtils.GetAssemblyVersion(path);
 
-            if (version == null || version == assemblyVersion)
+            if (version == null || version.Version == assemblyVersion)
             {
                 _resolvedPaths[name] = path;
 
@@ -69,7 +69,7 @@ namespace Microsoft.Framework.Runtime
                     Identity = new Library
                     {
                         Name = name,
-                        Version = assemblyVersion,
+                        Version = version,
                         IsGacOrFrameworkReference = true
                     },
                     LoadableAssemblies = new[] { name },

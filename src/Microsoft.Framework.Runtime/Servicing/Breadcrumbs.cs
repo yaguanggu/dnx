@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Framework.ConcurrencyHelpers;
 using NuGet;
 
 namespace Microsoft.Framework.Runtime.Servicing

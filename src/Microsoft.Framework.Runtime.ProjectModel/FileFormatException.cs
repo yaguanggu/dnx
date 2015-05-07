@@ -57,7 +57,7 @@ namespace Microsoft.Framework.Runtime
             .WithLineInfo(lineInfo);
         }
 
-        internal static FileFormatException Create(JsonReaderException exception, string path)
+        public static FileFormatException Create(JsonReaderException exception, string path)
         {
             return new FileFormatException(exception.Message, exception)
             {

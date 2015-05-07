@@ -4,7 +4,6 @@
 using System.IO;
 using System.Linq;
 using Microsoft.Framework.Runtime;
-using Microsoft.Framework.Runtime.DependencyManagement;
 using NuGet;
 
 namespace Microsoft.Framework.PackageManager

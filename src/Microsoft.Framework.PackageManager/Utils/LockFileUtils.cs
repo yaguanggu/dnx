@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Versioning;
-using Microsoft.Framework.Runtime.DependencyManagement;
 using NuGet;
 using NuGet.ContentModel;
 

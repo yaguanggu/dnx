@@ -3,7 +3,7 @@
   "compileFiles": [
     "../Microsoft.Framework.Runtime.Common/Impl/DictionaryExtensions.cs",
     "../Microsoft.Framework.Runtime.Common/Impl/PlatformHelper.cs",
-    "../Microsoft.Framework.Runtime.Hosting/Internal/AssemblyUtils.cs"
+    "../Microsoft.Framework.Runtime/Internal/AssemblyUtils.cs"
   ],
   "dependencies": {
     "Microsoft.Framework.Runtime.NuGet.Frameworks": "1.0.0-*"
