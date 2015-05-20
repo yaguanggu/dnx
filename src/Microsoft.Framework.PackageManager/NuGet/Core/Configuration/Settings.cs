@@ -10,6 +10,9 @@ using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using NuGet.Resources;
+#if DNXCORE50
+using Environment = Microsoft.Framework.PackageManager.Internal.Environment;
+#endif
 
 namespace NuGet
 {
@@ -104,11 +107,7 @@ namespace NuGet
         {
             // Walk up the tree to find a config file; also look in .nuget subdirectories
             var validSettingFiles = new List<Settings>();
-#if DNX451
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-#else
-            var appData = Environment.GetEnvironmentVariable("APPDATA");
-#endif
             var redirectSettingsPath = Path.Combine(appData,
                                                     "nuget",
                                                     "nuget.redirect.config");
@@ -172,11 +171,7 @@ namespace NuGet
             if (configFileName == null)
             {
                 // load %AppData%\NuGet\NuGet.config
-#if DNX451
                 var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-#else
-                var appDataPath = Environment.GetEnvironmentVariable("APPDATA");
-#endif
                 if (!String.IsNullOrEmpty(appDataPath))
                 {
                     var defaultSettingsPath = Path.Combine(appDataPath, "NuGet");

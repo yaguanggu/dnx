@@ -6,6 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.Framework.Runtime;
+#if DNXCORE50
+using Environment = Microsoft.Framework.PackageManager.Internal.Environment;
+#endif
 
 namespace NuGet
 {
@@ -21,12 +25,19 @@ namespace NuGet
 
         private static ConfigurationDefaults InitializeInstance()
         {
-#if DNX451
-            var commonAppData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-#else
-            var commonAppData = Environment.GetEnvironmentVariable("ProgramData");
-#endif
-            var baseDirectory = Path.Combine(commonAppData, "NuGet");
+            string appData;
+            if (PlatformHelper.IsWindows)
+            {
+                appData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            }
+            else
+            {
+                // Only super users have write access to common app data folder on *nix,
+                // so we use roaming local app data folder instead
+                appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            }
+
+            var baseDirectory = Path.Combine(appData, "NuGet");
             PhysicalFileSystem fileSystem = new PhysicalFileSystem(baseDirectory);
             return new ConfigurationDefaults(fileSystem, ConfigurationDefaultsFile);
         }

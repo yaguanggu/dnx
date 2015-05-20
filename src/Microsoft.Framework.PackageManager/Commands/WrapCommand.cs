@@ -12,6 +12,9 @@ using System.Xml.Linq;
 using Microsoft.Framework.Runtime;
 using Newtonsoft.Json.Linq;
 using NuGet;
+#if DNXCORE50
+using Environment = Microsoft.Framework.PackageManager.Internal.Environment;
+#endif
 
 namespace Microsoft.Framework.PackageManager
 {
@@ -214,19 +217,12 @@ namespace Microsoft.Framework.PackageManager
 
         private string GetDefaultMSBuildPath()
         {
-#if DNX451
             var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-#else
-            var programFilesPath = Environment.GetEnvironmentVariable("PROGRAMFILES(X86)");
-#endif
+
             // On 32-bit Windows
             if (string.IsNullOrEmpty(programFilesPath))
             {
-#if DNX451
                 programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-#else
-                programFilesPath = Environment.GetEnvironmentVariable("PROGRAMFILES");
-#endif
             }
 
             return Path.Combine(programFilesPath, "MSBuild", "14.0", "Bin", "MSBuild.exe");

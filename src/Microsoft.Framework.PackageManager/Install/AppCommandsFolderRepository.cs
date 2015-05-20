@@ -7,6 +7,9 @@ using System.IO;
 using System.Linq;
 using Microsoft.Framework.Runtime;
 using NuGet;
+#if DNXCORE50
+using Environment = Microsoft.Framework.PackageManager.Internal.Environment;
+#endif
 
 namespace Microsoft.Framework.PackageManager
 {
@@ -145,12 +148,7 @@ namespace Microsoft.Framework.PackageManager
 
         public static AppCommandsFolderRepository CreateDefault()
         {
-            // TODO: use Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) when it's available on CoreCLR
-            var userProfileFolder = Environment.GetEnvironmentVariable("USERPROFILE");
-            if (string.IsNullOrEmpty(userProfileFolder))
-            {
-                userProfileFolder = Environment.GetEnvironmentVariable("HOME");
-            }
+            var userProfileFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
             if (string.IsNullOrEmpty(userProfileFolder))
             {

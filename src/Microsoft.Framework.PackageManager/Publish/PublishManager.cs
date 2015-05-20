@@ -8,6 +8,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
 using Microsoft.Framework.Runtime;
+#if DNXCORE50
+using Environment = Microsoft.Framework.PackageManager.Internal.Environment;
+#endif
 
 namespace Microsoft.Framework.PackageManager.Publish
 {
@@ -131,12 +134,8 @@ namespace Microsoft.Framework.PackageManager.Publish
                     if (string.IsNullOrEmpty(runtimeHome))
                     {
                         var runtimeGlobalPath = Environment.GetEnvironmentVariable(EnvironmentNames.GlobalPath);
-#if DNXCORE50
-                        runtimeHome = @"%USERPROFILE%\" + Constants.DefaultLocalRuntimeHomeDir + ";" + runtimeGlobalPath;
-#else
                         var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                         runtimeHome = Path.Combine(userProfile, Constants.DefaultLocalRuntimeHomeDir) + ";" + runtimeGlobalPath;
-#endif
                     }
 
                     foreach (var portion in runtimeHome.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))

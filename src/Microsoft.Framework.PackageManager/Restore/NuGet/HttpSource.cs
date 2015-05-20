@@ -12,6 +12,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Framework.Runtime.Internal;
+#if DNXCORE50
+using Environment = Microsoft.Framework.PackageManager.Internal.Environment;
+#endif
 
 namespace Microsoft.Framework.PackageManager.Restore.NuGet
 {
@@ -208,11 +211,7 @@ namespace Microsoft.Framework.PackageManager.Restore.NuGet
             var baseFolderName = RemoveInvalidFileNameChars(ComputeHash(_baseUri));
             var baseFileName = RemoveInvalidFileNameChars(cacheKey) + ".dat";
 
-#if DNX451
             var localAppDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-#else
-            var localAppDataFolder = Environment.GetEnvironmentVariable("LocalAppData");
-#endif
             var cacheFolder = Path.Combine(localAppDataFolder, "dnu", "cache", baseFolderName);
             var cacheFile = Path.Combine(cacheFolder, baseFileName);
 
