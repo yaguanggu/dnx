@@ -601,6 +601,24 @@ namespace NuGet
             return true;
         }
 
+        public IEnumerable<string> GetNuGetConfigFiles()
+        {
+            var next = this;
+            while (next != null)
+            {
+                yield return next.ConfigFilePath;
+
+                next = next._next;
+            }
+
+            // All Settings in the list are assigned the same redirect currently
+            // so we don't need to loop to find them all
+            if (_redirect != null)
+            {
+                yield return _redirect.ConfigFilePath;
+            }
+        }
+
         private void ReadSection(XContainer sectionElement, ICollection<SettingValue> values, bool isPath)
         {
             var elements = sectionElement.Elements();
