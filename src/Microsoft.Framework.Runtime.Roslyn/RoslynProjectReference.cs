@@ -270,7 +270,7 @@ namespace Microsoft.Framework.Runtime.Roslyn
         {
             try
             {
-                if (RuntimeEnvironmentHelper.IsMono)
+                if (!RuntimeEnvironmentHelper.IsWindows)
                 {
                     return false;
                 }

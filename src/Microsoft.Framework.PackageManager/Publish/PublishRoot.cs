@@ -162,7 +162,7 @@ exec ""{2}{3}"" --appbase ""${0}"" Microsoft.Framework.ApplicationHost {4} ""$@"
                 File.WriteAllText(scriptPath,
                     string.Format(template, EnvironmentNames.AppBase, relativeAppBase, runtimeFolder, Runtime.Constants.BootstrapperExeName, commandName).Replace("\r\n", "\n"));
 
-                if (RuntimeEnvironmentHelper.IsMono)
+                if (!RuntimeEnvironmentHelper.IsWindows)
                 {
                     if (!FileOperationUtils.MarkExecutable(scriptPath))
                     {

@@ -17,7 +17,7 @@ namespace Microsoft.Framework.Runtime
 
         public IEnumerable<string> GetAttemptedPaths(FrameworkName targetFramework)
         {
-            if (RuntimeEnvironmentHelper.IsMono)
+            if (!RuntimeEnvironmentHelper.IsWindows)
             {
                 return Enumerable.Empty<string>();
             }
@@ -37,7 +37,7 @@ namespace Microsoft.Framework.Runtime
                 return null;
             }
 
-            if (RuntimeEnvironmentHelper.IsMono)
+            if (!RuntimeEnvironmentHelper.IsWindows)
             {
                 return null;
             }
