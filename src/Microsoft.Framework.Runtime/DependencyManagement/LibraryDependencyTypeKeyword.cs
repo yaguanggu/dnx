@@ -5,7 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace Microsoft.Framework.Runtime
 {
@@ -13,11 +12,11 @@ namespace Microsoft.Framework.Runtime
     {
         private static ConcurrentDictionary<string, LibraryDependencyTypeKeyword> _keywords = new ConcurrentDictionary<string, LibraryDependencyTypeKeyword>();
 
-        public static LibraryDependencyTypeKeyword Default;
-        public static LibraryDependencyTypeKeyword Build;
-        public static LibraryDependencyTypeKeyword Preprocess;
-        public static LibraryDependencyTypeKeyword Private;
-        public static LibraryDependencyTypeKeyword Dev;
+        public static readonly LibraryDependencyTypeKeyword Default;
+        public static readonly LibraryDependencyTypeKeyword Build;
+        public static readonly LibraryDependencyTypeKeyword Preprocess;
+        public static readonly LibraryDependencyTypeKeyword Private;
+        public static readonly LibraryDependencyTypeKeyword Dev;
 
         private readonly string _value;
         private readonly IEnumerable<LibraryDependencyTypeFlag> _flagsToAdd;
@@ -40,71 +39,77 @@ namespace Microsoft.Framework.Runtime
             Default = Declare(
                 "default",
                 flagsToAdd: new[]
-                {
-                    LibraryDependencyTypeFlag.MainReference,
-                    LibraryDependencyTypeFlag.MainSource,
-                    LibraryDependencyTypeFlag.MainExport,
-                    LibraryDependencyTypeFlag.RuntimeComponent,
-                    LibraryDependencyTypeFlag.BecomesNupkgDependency,
-                },
+                    {
+                        LibraryDependencyTypeFlag.MainReference,
+                        LibraryDependencyTypeFlag.MainSource,
+                        LibraryDependencyTypeFlag.MainExport,
+                        LibraryDependencyTypeFlag.RuntimeComponent,
+                        LibraryDependencyTypeFlag.BecomesNupkgDependency,
+                    },
                 flagsToRemove: emptyFlags);
 
             Private = Declare(
                 "private",
                 flagsToAdd: new[]
-                {
-                    LibraryDependencyTypeFlag.MainReference,
-                    LibraryDependencyTypeFlag.MainSource,
-                    LibraryDependencyTypeFlag.RuntimeComponent,
-                    LibraryDependencyTypeFlag.BecomesNupkgDependency,
-                },
+                    {
+                        LibraryDependencyTypeFlag.MainReference,
+                        LibraryDependencyTypeFlag.MainSource,
+                        LibraryDependencyTypeFlag.RuntimeComponent,
+                        LibraryDependencyTypeFlag.BecomesNupkgDependency,
+                    },
                 flagsToRemove: emptyFlags);
 
             Dev = Declare(
                 "dev",
                 flagsToAdd: new[]
-                {
-                    LibraryDependencyTypeFlag.DevComponent,
-                },
+                    {
+                        LibraryDependencyTypeFlag.DevComponent,
+                    },
                 flagsToRemove: emptyFlags);
 
             Build = Declare(
                 "build",
                 flagsToAdd: new[]
-                {
-                    LibraryDependencyTypeFlag.MainSource,
-                    LibraryDependencyTypeFlag.PreprocessComponent,
-                },
+                    {
+                        LibraryDependencyTypeFlag.MainSource,
+                        LibraryDependencyTypeFlag.PreprocessComponent,
+                    },
                 flagsToRemove: emptyFlags);
 
             Preprocess = Declare(
                 "preprocess",
                 flagsToAdd: new[]
-                {
-                    LibraryDependencyTypeFlag.PreprocessReference,
-                },
+                    {
+                        LibraryDependencyTypeFlag.PreprocessReference,
+                    },
                 flagsToRemove: emptyFlags);
 
-            foreach (var fieldInfo in typeof(LibraryDependencyTypeFlag).GetTypeInfo().DeclaredFields)
-            {
-                if (fieldInfo.FieldType == typeof(LibraryDependencyTypeFlag))
-                {
-                    var flag = (LibraryDependencyTypeFlag)fieldInfo.GetValue(null);
-                    Declare(
-                        fieldInfo.Name,
-                        flagsToAdd: new[] { flag },
-                        flagsToRemove: emptyFlags);
-                    Declare(
-                        fieldInfo.Name + "-off",
-                        flagsToAdd: emptyFlags,
-                        flagsToRemove: new[] { flag });
-                }
-            }
+            DeclareOnOff("MainReference", LibraryDependencyTypeFlag.MainReference, emptyFlags);
+            DeclareOnOff("MainSource", LibraryDependencyTypeFlag.MainSource, emptyFlags);
+            DeclareOnOff("MainExport", LibraryDependencyTypeFlag.MainExport, emptyFlags);
+            DeclareOnOff("PreprocessReference", LibraryDependencyTypeFlag.PreprocessReference, emptyFlags);
+
+            DeclareOnOff("RuntimeComponent", LibraryDependencyTypeFlag.RuntimeComponent, emptyFlags);
+            DeclareOnOff("DevComponent", LibraryDependencyTypeFlag.DevComponent, emptyFlags);
+            DeclareOnOff("PreprocessComponent", LibraryDependencyTypeFlag.PreprocessComponent, emptyFlags);
+            DeclareOnOff("BecomesNupkgDependency", LibraryDependencyTypeFlag.BecomesNupkgDependency, emptyFlags);
+        }
+
+        private static void DeclareOnOff(string name, LibraryDependencyTypeFlag flag, IEnumerable<LibraryDependencyTypeFlag> emptyFlags)
+        {
+            Declare(name,
+                flagsToAdd: new[] { flag },
+                flagsToRemove: emptyFlags);
+
+            Declare(
+                name + "-off",
+                flagsToAdd: emptyFlags,
+                flagsToRemove: new[] { flag });
         }
 
         private LibraryDependencyTypeKeyword(
-            string value, 
-            IEnumerable<LibraryDependencyTypeFlag> flagsToAdd, 
+            string value,
+            IEnumerable<LibraryDependencyTypeFlag> flagsToAdd,
             IEnumerable<LibraryDependencyTypeFlag> flagsToRemove)
         {
             _value = value;

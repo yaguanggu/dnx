@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.Versioning;
+using Microsoft.Framework.Runtime.Common.Impl;
 using NuGet;
 
 namespace Microsoft.Framework.Runtime.Helpers
@@ -11,6 +12,21 @@ namespace Microsoft.Framework.Runtime.Helpers
     {
         public static FrameworkName ParseFrameworkName(string targetFramework)
         {
+            // Fast path for runtime code path, these 3 short names are the runnable tfms
+            // We fall back to regular parsing in other scenarios (build/dth)
+            if (targetFramework == FrameworkNames.ShortNames.Dnx451)
+            {
+                return new FrameworkName(FrameworkNames.LongNames.Dnx, new Version(4, 5, 1));
+            }
+            else if (targetFramework == FrameworkNames.ShortNames.Dnx46)
+            {
+                return new FrameworkName(FrameworkNames.LongNames.Dnx, new Version(4, 6));
+            }
+            else if (targetFramework == FrameworkNames.ShortNames.DnxCore50)
+            {
+                return new FrameworkName(FrameworkNames.LongNames.DnxCore, new Version(5, 0));
+            }
+
             if (targetFramework.Contains("+"))
             {
                 var portableProfile = NetPortableProfile.Parse(targetFramework);

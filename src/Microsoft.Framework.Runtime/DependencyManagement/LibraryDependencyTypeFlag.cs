@@ -1,11 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 namespace Microsoft.Framework.Runtime
 {
@@ -14,28 +10,17 @@ namespace Microsoft.Framework.Runtime
         private static ConcurrentDictionary<string, LibraryDependencyTypeFlag> _flags = new ConcurrentDictionary<string, LibraryDependencyTypeFlag>();
         private readonly string _value;
 
-        public static LibraryDependencyTypeFlag MainReference;
-        public static LibraryDependencyTypeFlag MainSource;
-        public static LibraryDependencyTypeFlag MainExport;
-        public static LibraryDependencyTypeFlag PreprocessReference;
+        public static readonly LibraryDependencyTypeFlag MainReference = Declare("MainReference");
+        public static readonly LibraryDependencyTypeFlag MainSource = Declare("MainSource");
+        public static readonly LibraryDependencyTypeFlag MainExport = Declare("MainExport");
+        public static readonly LibraryDependencyTypeFlag PreprocessReference = Declare("PreprocessReference");
 
-        public static LibraryDependencyTypeFlag RuntimeComponent;
-        public static LibraryDependencyTypeFlag DevComponent;
-        public static LibraryDependencyTypeFlag PreprocessComponent;
-        public static LibraryDependencyTypeFlag BecomesNupkgDependency;
+        public static readonly LibraryDependencyTypeFlag RuntimeComponent = Declare("RuntimeComponent");
+        public static readonly LibraryDependencyTypeFlag DevComponent = Declare("DevComponent");
+        public static readonly LibraryDependencyTypeFlag PreprocessComponent = Declare("PreprocessComponent");
+        public static readonly LibraryDependencyTypeFlag BecomesNupkgDependency = Declare("BecomesNupkgDependency");
 
-        static LibraryDependencyTypeFlag()
-        {
-            foreach (var fieldInfo in typeof(LibraryDependencyTypeFlag).GetTypeInfo().DeclaredFields)
-            {
-                if (fieldInfo.FieldType == typeof(LibraryDependencyTypeFlag))
-                {
-                    fieldInfo.SetValue(null, Declare(fieldInfo.Name));
-                }
-            }
-        }
-
-        LibraryDependencyTypeFlag(string value)
+        private LibraryDependencyTypeFlag(string value)
         {
             _value = value;
         }

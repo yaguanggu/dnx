@@ -284,7 +284,7 @@ namespace Microsoft.Framework.Runtime
                     var name = Path.GetFileNameWithoutExtension(assemblyPath);
                     var path = Path.Combine(dependency.Path, assemblyPath);
                     var assemblyName = new AssemblyName(name);
-
+                    
                     string replacementPath;
                     if (Servicing.ServicingTable.TryGetReplacement(
                         packageInfo.Id,
