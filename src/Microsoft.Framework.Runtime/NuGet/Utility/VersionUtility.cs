@@ -717,7 +717,7 @@ namespace NuGet
             // Find exact matching items in expansion order.
             foreach (var activeFramework in Expand(internalProjectFramework))
             {
-                var matchingGroups = frameworkGroups.Where(g => string.Equals(g.Key?.Identifier, internalProjectFramework.Identifier, StringComparison.OrdinalIgnoreCase)).ToList();
+                var matchingGroups = frameworkGroups.Where(g => string.Equals(g.Key?.Identifier, activeFramework.Identifier, StringComparison.OrdinalIgnoreCase)).ToList();
                 var bestGroup = matchingGroups
                     .OrderByDescending(f => f.Key.Version)
                     .FirstOrDefault(g => g.Key.Version <= activeFramework.Version);
