@@ -31,23 +31,32 @@ namespace Microsoft.Framework.Runtime.Internal
 
         public async static Task<T> ExecuteWithFileLocked<T>(string filePath, Func<bool, Task<T>> action)
         {
-            var createdNew = false;
-            var fileLock = new Semaphore(initialCount: 0, maximumCount: 1, name: FilePathToLockName(filePath),
-                createdNew: out createdNew);
-            try
+            for (var i = 0; i < 3; ++i)
             {
-                // If this lock is already acquired by another process, wait until we can acquire it
-                if (!createdNew)
+                var createdNew = false;
+                var fileLock = new Semaphore(initialCount: 0, maximumCount: 1, name: FilePathToLockName(filePath),
+                    createdNew: out createdNew);
+                try
                 {
-                    fileLock.WaitOne();
-                }
+                    // If this lock is already acquired by another process, wait until we can acquire it
+                    if (!createdNew)
+                    {
+                        // Timeout and retry after 5 seconds
+                        if (fileLock.WaitOne(5000) == false)
+                        {
+                            continue;
+                        }
+                    }
 
-                return await action(createdNew);
+                    return await action(createdNew);
+                }
+                finally
+                {
+                    fileLock.Release();
+                }
             }
-            finally
-            {
-                fileLock.Release();
-            }
+
+            throw new TaskCanceledException($"Failed to acquire Semaphore to lock file: {filePath}");
         }
     }
 }
