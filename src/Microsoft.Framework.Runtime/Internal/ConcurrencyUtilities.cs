@@ -16,12 +16,12 @@ namespace Microsoft.Framework.Runtime.Internal
             // the ctor of semaphore looks for the file and throws an IOException
             // when the file doesn't exist. So we need a conversion from a file path
             // to a unique lock name.
-            return filePath.Replace(Path.DirectorySeparatorChar, '_');
+            return $"DNU_RESTORE_{filePath.Replace(Path.DirectorySeparatorChar, '_')}";
         }
 
-        public static void ExecuteWithFileLocked(string filePath, Action<bool> action)
+        public static void ExecuteWithFileLocked(string filePath, int timeoutMilliseconds, Action<bool> action)
         {
-            ExecuteWithFileLocked(filePath, createdNew =>
+            ExecuteWithFileLocked(filePath, timeoutMilliseconds, createdNew =>
             {
                 action(createdNew);
                 return Task.FromResult(1);
@@ -29,7 +29,7 @@ namespace Microsoft.Framework.Runtime.Internal
             .GetAwaiter().GetResult();
         }
 
-        public async static Task<T> ExecuteWithFileLocked<T>(string filePath, Func<bool, Task<T>> action)
+        public async static Task<T> ExecuteWithFileLocked<T>(string filePath, int timeoutMilliseconds, Func<bool, Task<T>> action)
         {
             for (var i = 0; i < 3; ++i)
             {
@@ -41,9 +41,10 @@ namespace Microsoft.Framework.Runtime.Internal
                     // If this lock is already acquired by another process, wait until we can acquire it
                     if (!createdNew)
                     {
-                        // Timeout and retry after 5 seconds
-                        if (fileLock.WaitOne(5000) == false)
+                        var signaled = fileLock.WaitOne(5000);
+                        if (!signaled)
                         {
+                            // Timeout and retry
                             continue;
                         }
                     }
@@ -56,7 +57,7 @@ namespace Microsoft.Framework.Runtime.Internal
                 }
             }
 
-            throw new TaskCanceledException($"Failed to acquire Semaphore to lock file: {filePath}");
+            throw new TaskCanceledException($"Failed to acquire Semaphore for file: {filePath}");
         }
     }
 }
